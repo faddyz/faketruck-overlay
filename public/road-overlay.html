@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FakeTruck HUD</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@500;600;700&family=Rajdhani:wght@600;700&display=swap');
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  :root {
+    --gold: #f5c518;
+    --gold-bright: #ffe17b;
+    --gold-line: rgba(245, 197, 24, 0.56);
+    --gold-soft: rgba(245, 197, 24, 0.24);
+    --panel: rgba(10, 10, 10, 0.70);
+    --panel-top: rgba(255, 255, 255, 0.04);
+    --text: rgba(255, 255, 255, 0.96);
+    --text-soft: rgba(255, 255, 255, 0.72);
+    --track: rgba(255, 255, 255, 0.14);
+  }
+
+  html,
+  body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: transparent;
+    font-family: 'Exo 2', sans-serif;
+  }
+
+  body {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 72px 84px;
+    pointer-events: none;
+  }
+
+  .hud {
+    position: relative;
+    width: 620px;
+    min-height: 238px;
+    animation: overlayIn 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes overlayIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px) scale(0.985);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .panel {
+    position: relative;
+    width: 500px;
+    min-height: 198px;
+    margin-left: 0;
+    margin-top: 26px;
+    padding: 38px 20px 16px 20px;
+    border-radius: 22px;
+    background:
+      linear-gradient(180deg, var(--panel-top), rgba(255, 255, 255, 0.01)),
+      var(--panel);
+    border: 1px solid rgba(245, 197, 24, 0.44);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow:
+      0 0 0 1px rgba(255, 232, 149, 0.04) inset,
+      0 0 20px rgba(245, 197, 24, 0.18),
+      0 0 42px rgba(245, 197, 24, 0.08);
+    overflow: visible;
+  }
+
+  .hud.expanded .panel {
+    width: 500px;
+    min-height: 228px;
+    padding-bottom: 20px;
+  }
+
+  .panel::before {
+    content: '';
+    position: absolute;
+    inset: 9px;
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.045);
+    pointer-events: none;
+  }
+
+  .panel::after {
+    content: '';
+    position: absolute;
+    left: 26px;
+    right: 26px;
+    top: 28px;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(245, 197, 24, 0.34), rgba(245, 197, 24, 0.1));
+    box-shadow: 0 0 12px rgba(245, 197, 24, 0.18);
+    pointer-events: none;
+  }
+
+  .hud.mode-offer .panel {
+    padding: 16px 14px;
+    display: flex;
+    align-items: center;
+    min-height: 198px;
+  }
+
+
+  .hud.mode-offer .panel::after,
+  .hud.mode-offer .content {
+    display: none;
+  }
+
+  .truck {
+    display: none;
+    position: absolute;
+    left: -66px;
+    bottom: -26px;
+    width: 206px;
+    z-index: 3;
+    filter:
+      drop-shadow(0 0 8px rgba(245, 197, 24, 0.34))
+      drop-shadow(0 10px 14px rgba(0, 0, 0, 0.22));
+    transform-origin: 50% 72%;
+    animation: truckBob 2.6s cubic-bezier(0.42, 0, 0.2, 1) infinite, truckGlow 4.8s ease-in-out infinite;
+  }
+
+  .hud.mode-offer .truck {
+    display: block;
+    left: 22px;
+    top: 50%;
+    bottom: auto;
+    width: 156px;
+    transform: translate(-52%, -50%);
+    animation: offerTruckBob 2.8s cubic-bezier(0.42, 0, 0.2, 1) infinite, truckGlow 4.8s ease-in-out infinite;
+  }
+
+  .truck img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  @keyframes truckBob {
+    0%, 100% { transform: translateY(0) rotate(-1.4deg) scale(1); }
+    50% { transform: translateY(-9px) rotate(1.5deg) scale(1.014); }
+  }
+
+  @keyframes offerTruckBob {
+    0%, 100% { transform: translate(-52%, -50%) rotate(-1.1deg) scale(1); }
+    50% { transform: translate(-52%, -56%) rotate(1.2deg) scale(1.012); }
+  }
+
+  @keyframes truckGlow {
+    0%, 100% { filter: drop-shadow(0 0 8px rgba(245, 197, 24, 0.28)) drop-shadow(0 10px 14px rgba(0, 0, 0, 0.22)); }
+    50% { filter: drop-shadow(0 0 10px rgba(245, 197, 24, 0.42)) drop-shadow(0 10px 14px rgba(0, 0, 0, 0.22)); }
+  }
+
+  .logo {
+    position: absolute;
+    top: -34px;
+    right: 12px;
+    height: 88px;
+    z-index: 4;
+    border-radius: 14px;
+    overflow: hidden;
+    filter:
+      drop-shadow(0 0 14px rgba(245, 197, 24, 0.24))
+      drop-shadow(0 8px 12px rgba(0, 0, 0, 0.2));
+    transform-origin: 50% 60%;
+    will-change: transform;
+    animation: logoStickerFloat 5.8s ease-in-out infinite;
+  }
+
+  .logo img {
+    display: block;
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    width: auto;
+    object-fit: contain;
+  }
+
+  .logo::after {
+    content: '';
+    position: absolute;
+    top: -8%;
+    left: -26%;
+    width: 24%;
+    height: 116%;
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.58) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    transform: skewX(-15deg);
+    mix-blend-mode: screen;
+    opacity: 0;
+    animation: logoShine 5.4s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  @keyframes logoStickerFloat {
+    0%, 100% { transform: translateY(0) rotate(-1.2deg) scale(1); }
+    50% { transform: translateY(-2px) rotate(0.9deg) scale(1.012); }
+  }
+
+  @keyframes logoShine {
+    0%, 18% {
+      left: -26%;
+      opacity: 0;
+    }
+
+    26% {
+      opacity: 0.52;
+    }
+
+    44% {
+      left: 102%;
+      opacity: 0;
+    }
+
+    100% {
+      left: 102%;
+      opacity: 0;
+    }
+  }
+
+  .content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .offer-state {
+    display: none;
+    position: relative;
+    width: 100%;
+    min-height: 146px;
+    padding: 8px 10px 8px 122px;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+  }
+
+  .hud.mode-offer .offer-state {
+    display: flex;
+  }
+
+  .offer-text {
+    max-width: 300px;
+    color: rgba(245, 197, 24, 0.95);
+    font-size: 34px;
+    font-weight: 800;
+    line-height: 1.06;
+    letter-spacing: -0.1px;
+    text-align: left;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.34);
+  }
+
+  .hud.mode-offer.offer-long .offer-text {
+    max-width: 300px;
+    font-size: 31px;
+  }
+
+  .hud.mode-offer.offer-xlong .offer-text {
+    max-width: 300px;
+    font-size: 27px;
+  }
+
+  .hud.mode-offer.offer-xxlong .offer-text {
+    max-width: 300px;
+    font-size: 24px;
+    line-height: 1.12;
+  }
+
+  .hud.mode-switch .panel {
+    animation: modePanelSwap 620ms cubic-bezier(0.19, 1, 0.22, 1);
+  }
+
+  .hud.mode-switch .content,
+  .hud.mode-switch .offer-state,
+  .hud.mode-switch .logo {
+    animation: modeElementFade 560ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .hud.mode-switch::after {
+    content: '';
+    position: absolute;
+    inset: 12px;
+    border-radius: 28px;
+    background: linear-gradient(
+      110deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(245, 197, 24, 0.08) 34%,
+      rgba(255, 231, 139, 0.45) 50%,
+      rgba(245, 197, 24, 0.08) 66%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    mix-blend-mode: screen;
+    pointer-events: none;
+    z-index: 8;
+    animation: modeSweep 620ms cubic-bezier(0.19, 1, 0.22, 1);
+  }
+
+  @keyframes modePanelSwap {
+    0% {
+      opacity: 0.22;
+      transform: translateY(14px) scale(0.952);
+      filter: blur(3px) saturate(0.76);
+    }
+    46% {
+      opacity: 0.94;
+      transform: translateY(-1px) scale(1.01);
+      filter: blur(0.35px) saturate(1.06);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0) saturate(1);
+    }
+  }
+
+  @keyframes modeElementFade {
+    0% {
+      opacity: 0;
+      transform: translateY(14px) scale(0.98);
+      filter: blur(2px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+      filter: blur(0);
+    }
+  }
+
+  @keyframes modeSweep {
+    0% {
+      opacity: 0;
+      transform: translateX(-32%) skewX(-9deg);
+    }
+    22% {
+      opacity: 0.75;
+    }
+    100% {
+      opacity: 0;
+      transform: translateX(34%) skewX(-9deg);
+    }
+  }
+
+  .metrics {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 22px;
+    align-items: end;
+    min-width: 0;
+    padding-bottom: 11px;
+    margin-bottom: 2px;
+    order: 1;
+  }
+
+  .metrics::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(245, 197, 24, 0.34), rgba(245, 197, 24, 0.1));
+    box-shadow: 0 0 12px rgba(245, 197, 24, 0.18);
+    pointer-events: none;
+  }
+
+  .metric {
+    min-width: 0;
+  }
+
+  .metric-head {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .metric-icon {
+    width: 16px;
+    height: 16px;
+    color: var(--gold);
+    flex: 0 0 auto;
+  }
+
+  .metric-icon svg {
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .metric-label {
+    color: rgba(245, 197, 24, 0.92);
+    font-family: 'Exo 2', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+
+  .metric-value {
+    margin-top: 5px;
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 40px;
+    font-weight: 700;
+    line-height: 0.92;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.2px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
+  }
+
+  .metric-value.distance-swap {
+    animation: distanceSwap 900ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  @keyframes distanceSwap {
+    0% {
+      opacity: 0.3;
+      transform: translateY(5px) scale(0.985);
+      filter: blur(1px);
+    }
+
+    55% {
+      opacity: 0.82;
+      transform: translateY(1px) scale(0.995);
+      filter: blur(0.3px);
+    }
+
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+      filter: blur(0);
+    }
+  }
+
+  .destination-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    min-width: 0;
+    order: 2;
+  }
+
+  .destination {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+    padding-top: 2px;
+    flex: 1 1 auto;
+  }
+
+  .destination-label {
+    color: rgba(245, 197, 24, 0.82);
+    font-family: 'Exo 2', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+
+  .destination-text {
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.05;
+    min-width: 0;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+
+  .cargo {
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 6px;
+    min-width: 0;
+  }
+
+  .cargo.visible {
+    display: flex;
+  }
+
+  .cargo-label {
+    color: rgba(245, 197, 24, 0.82);
+    font-family: 'Exo 2', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+
+  .cargo-text {
+    color: rgba(255, 255, 255, 0.92);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 25px;
+    font-weight: 700;
+    line-height: 1.12;
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+
+  .pickup {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+    margin-top: -1px;
+    order: 3;
+  }
+
+  .hud.expanded .pickup {
+    display: flex;
+    order: 2;
+  }
+
+  .hud.mode-pickup .pickup {
+    display: none !important;
+  }
+
+  .hud.expanded .destination-row {
+    order: 3;
+  }
+
+  .fare {
+    display: none;
+    flex-direction: column;
+    align-items: flex-end;
+    min-width: 0;
+    margin-top: 2px;
+    padding: 0;
+    flex: 0 0 auto;
+  }
+
+  .fare.visible {
+    display: flex;
+  }
+
+  .fare-label {
+    color: rgba(245, 197, 24, 0.82);
+    font-family: 'Exo 2', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+
+  .fare-value {
+    margin-top: 5px;
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 25px;
+    font-weight: 700;
+    line-height: 1.02;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
+  }
+
+  .pickup-label {
+    color: rgba(245, 197, 24, 0.82);
+    font-family: 'Exo 2', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+
+  .pickup-text {
+    color: rgba(255, 255, 255, 0.9);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.02;
+    min-width: 0;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+
+  .progress-wrap {
+    position: relative;
+    margin-top: 16px;
+    padding-right: 8px;
+    padding-inline: 18px;
+    order: 4;
+  }
+
+  .route-marker {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  .route-start {
+    left: 0;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #fff2bc 0%, #f5c518 65%, #b88400 100%);
+    box-shadow:
+      0 0 6px rgba(245, 197, 24, 0.55),
+      0 0 0 1px rgba(255, 255, 255, 0.15);
+  }
+
+  .route-end {
+    right: 0;
+    width: 12px;
+    height: 12px;
+  }
+
+  .route-end::before {
+    content: '';
+    position: absolute;
+    left: 2px;
+    top: 1px;
+    width: 2px;
+    height: 10px;
+    border-radius: 1px;
+    background: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 0 4px rgba(255, 255, 255, 0.22);
+  }
+
+  .route-end::after {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 1px;
+    width: 8px;
+    height: 6px;
+    clip-path: polygon(0 0, 100% 32%, 0 64%);
+    background: linear-gradient(90deg, #ffe189, #f5c518);
+    box-shadow: 0 0 6px rgba(245, 197, 24, 0.4);
+  }
+
+  .progress-track {
+    position: relative;
+    width: 100%;
+    height: 8px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(52, 52, 52, 0.95), rgba(21, 21, 21, 0.94));
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow:
+      inset 0 1px 1px rgba(255, 255, 255, 0.08),
+      inset 0 -2px 3px rgba(0, 0, 0, 0.45),
+      0 0 8px rgba(0, 0, 0, 0.28);
+    overflow: visible;
+  }
+
+  .progress-track::before {
+    content: '';
+    position: absolute;
+    left: 6px;
+    right: 6px;
+    top: 2px;
+    height: 4px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02));
+    pointer-events: none;
+  }
+
+  .progress-track::after {
+    content: '';
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    top: 50%;
+    height: 2px;
+    transform: translateY(-50%);
+    border-radius: 999px;
+    background:
+      repeating-linear-gradient(
+        90deg,
+        rgba(255, 248, 214, 0.58) 0 10px,
+        rgba(255, 248, 214, 0) 10px 20px
+      );
+    opacity: 0.62;
+    mix-blend-mode: screen;
+    animation: laneFlow 1.6s linear infinite;
+    pointer-events: none;
+  }
+
+  @keyframes laneFlow {
+    from { background-position-x: 0; }
+    to { background-position-x: -40px; }
+  }
+
+  .progress-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 0%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #f2ba0a 0%, #ffd966 52%, #fff0b5 100%);
+    box-shadow:
+      0 0 10px rgba(245, 197, 24, 0.46),
+      inset 0 1px 1px rgba(255, 255, 255, 0.42);
+    transition: width 900ms ease;
+  }
+
+  .progress-pin {
+    position: absolute;
+    left: 0%;
+    top: -32px;
+    width: 48px;
+    height: 48px;
+    transform: translateX(-50%);
+    transition: left 900ms ease;
+    z-index: 4;
+    background-image: url('truck.png');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    filter:
+      drop-shadow(0 0 6px rgba(245, 197, 24, 0.34))
+      drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+    pointer-events: none;
+  }
+
+  .progress-pin::before {
+    content: '';
+    position: absolute;
+    left: -24px;
+    top: 15px;
+    width: 22px;
+    height: 7px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(255, 236, 156, 0), rgba(245, 197, 24, 0.52));
+    filter: blur(1.2px);
+    opacity: 0.86;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+  <div class="hud" id="road-hud-root">
+    <div class="panel">
+      <div class="truck">
+        <img src="truck.png" alt="Truck" onerror="this.style.display='none'">
+      </div>
+
+      <div class="logo">
+        <img src="faketruck_logo.png" alt="FakeTruck" onerror="this.style.display='none'">
+      </div>
+
+      <div class="offer-state" id="offer-state">
+        <div class="offer-text" id="offer-text">Yeni i&#351; teklifleri; ta&#351;&#305;nacak y&#252;k bekliyor.</div>
+      </div>
+
+      <div class="content">
+        <div class="metrics">
+          <div class="metric">
+            <div class="metric-head">
+              <div class="metric-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+              </div>
+              <div class="metric-label">Kalan Yol</div>
+            </div>
+            <div class="metric-value" id="distance-text">-- km</div>
+          </div>
+
+          <div class="metric">
+            <div class="metric-head">
+              <div class="metric-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+              </div>
+              <div class="metric-label">Tahmini S&#252;re</div>
+            </div>
+            <div class="metric-value" id="duration-text">-- dk</div>
+          </div>
+        </div>
+
+        <div class="destination-row">
+          <div class="destination">
+            <div class="destination-label" id="dest-label">Var&#305;&#351; Noktas&#305;</div>
+            <div class="destination-text" id="dest-text">Bekleniyor...</div>
+            <div class="cargo" id="cargo-box">
+              <div class="cargo-label">Ta&#351;&#305;nan Y&#252;k</div>
+              <div class="cargo-text" id="cargo-text">-</div>
+            </div>
+          </div>
+          <div class="fare" id="fare-box">
+            <div class="fare-label">Alınacak Ücret</div>
+            <div class="fare-value" id="fare-text">$ --</div>
+          </div>
+        </div>
+
+        <div class="pickup" id="pickup-block">
+          <div class="pickup-label">Y&#252;k Al&#305;nan Konum</div>
+          <div class="pickup-text" id="pickup-text">-</div>
+        </div>
+
+        <div class="progress-wrap">
+          <div class="route-marker route-start" aria-hidden="true"></div>
+          <div class="route-marker route-end" aria-hidden="true"></div>
+          <div class="progress-track">
+            <div class="progress-fill" id="progress-fill"></div>
+            <div class="progress-pin" id="progress-pin"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const API = '/api';
+  const STATE_INTERVAL = 5000;
+  const ROUTE_INTERVAL = 5000;
+  const DISTANCE_UNIT_INTERVAL = 10000;
+  const DEFAULT_OFFER_TEXT = 'Yeni i\u015f teklifleri; ta\u015f\u0131nacak y\u00fck bekliyor.';
+
+  let destination = null;
+  let pickup = null;
+  let showPickup = false;
+  let fareAmount = '';
+  let showFare = false;
+  let cargoText = '';
+  let showCargo = false;
+  let overlayMode = 'normal';
+  let offerDefaultText = DEFAULT_OFFER_TEXT;
+  let offerCustomText = '';
+  let showRoadHudOverlay = true;
+  let totalDistance = null;
+  let latestDistanceKm = null;
+  let distanceUnitMode = 'km';
+  let hasPullKey = false;
+  let pullKeyRevision = 0;
+  let routeUpdateInFlight = false;
+  let modeTransitionTimer = null;
+  let pendingRouteRefreshTimer = null;
+
+  function applyRoadHudVisibility() {
+    const root = document.getElementById('road-hud-root');
+    root.style.display = showRoadHudOverlay ? '' : 'none';
+  }
+
+  function normalizeOverlayMode(value) {
+    const mode = String(value || '').trim().toLowerCase();
+    if (mode === 'offer' || mode === 'pickup') return mode;
+    return 'normal';
+  }
+
+  function applyOverlayMode(withTransition = false) {
+    const hud = document.getElementById('road-hud-root');
+    const destLabel = document.getElementById('dest-label');
+    hud.classList.remove('mode-normal', 'mode-offer', 'mode-pickup');
+    hud.classList.add(`mode-${overlayMode}`);
+    destLabel.textContent = overlayMode === 'pickup' ? 'Y\u00fck Al\u0131nacak Konum' : 'Var\u0131\u015f Noktas\u0131';
+
+    if (!withTransition) return;
+
+    hud.classList.remove('mode-switch');
+    void hud.offsetWidth;
+    hud.classList.add('mode-switch');
+
+    if (modeTransitionTimer) clearTimeout(modeTransitionTimer);
+    modeTransitionTimer = setTimeout(() => {
+      hud.classList.remove('mode-switch');
+      modeTransitionTimer = null;
+    }, 700);
+  }
+
+  function normalizeOfferText(value, fallback = '') {
+    const text = typeof value === 'string'
+      ? value.trim()
+      : value == null
+        ? ''
+        : String(value).trim();
+    return text || fallback;
+  }
+
+  function renderOfferText() {
+    const offerTextEl = document.getElementById('offer-text');
+    const hud = document.getElementById('road-hud-root');
+    if (!offerTextEl) return;
+    const next = normalizeOfferText(offerCustomText, normalizeOfferText(offerDefaultText, DEFAULT_OFFER_TEXT));
+    offerTextEl.textContent = next;
+    if (!hud) return;
+    hud.classList.remove('offer-long', 'offer-xlong', 'offer-xxlong');
+    if (next.length > 95) {
+      hud.classList.add('offer-xxlong');
+      return;
+    }
+    if (next.length > 70) {
+      hud.classList.add('offer-xlong');
+      return;
+    }
+    if (next.length > 42) {
+      hud.classList.add('offer-long');
+    }
+  }
+
+  function formatFare(value) {
+    const raw = typeof value === 'string' ? value.trim() : value == null ? '' : String(value).trim();
+    if (!raw) return '$ --';
+    return raw.startsWith('$') ? raw : `$ ${raw}`;
+  }
+
+  function renderFare() {
+    const fareBox = document.getElementById('fare-box');
+    const fareText = document.getElementById('fare-text');
+    if (showFare) {
+      fareBox.classList.add('visible');
+      fareText.textContent = formatFare(fareAmount);
+      return;
+    }
+
+    fareBox.classList.remove('visible');
+    fareText.textContent = '$ --';
+  }
+
+  function formatCargoText(value) {
+    const raw = typeof value === 'string' ? value.trim() : value == null ? '' : String(value).trim();
+    return raw || '-';
+  }
+
+  function renderCargo() {
+    const cargoBox = document.getElementById('cargo-box');
+    const cargoTextEl = document.getElementById('cargo-text');
+    if (showCargo) {
+      cargoBox.classList.add('visible');
+      cargoTextEl.textContent = formatCargoText(cargoText);
+      return;
+    }
+
+    cargoBox.classList.remove('visible');
+    cargoTextEl.textContent = '-';
+  }
+
+  function setProgress(percent) {
+    const safe = Math.max(0, Math.min(100, percent));
+    document.getElementById('progress-fill').style.width = safe + '%';
+    document.getElementById('progress-pin').style.left = safe + '%';
+  }
+
+  function resetMetrics() {
+    latestDistanceKm = null;
+    document.getElementById('distance-text').textContent = '-- km';
+    document.getElementById('duration-text').textContent = '-- dk';
+    setProgress(0);
+  }
+
+  function hasPickupData(value) {
+    return Boolean(value && Number.isFinite(Number(value.lat)) && Number.isFinite(Number(value.lon)));
+  }
+
+  function applyPickupMode() {
+    const hud = document.querySelector('.hud');
+    const pickupText = document.getElementById('pickup-text');
+    const shouldShow = overlayMode === 'normal' && showPickup && hasPickupData(pickup);
+
+    if (shouldShow) {
+      hud.classList.add('expanded');
+      pickupText.textContent = pickup.short_label || pickup.label || pickup.medium_label || pickup.full_label || '-';
+      return;
+    }
+
+    hud.classList.remove('expanded');
+    pickupText.textContent = '-';
+  }
+
+  function renderDistance(animated = false) {
+    const el = document.getElementById('distance-text');
+
+    if (latestDistanceKm == null) {
+      el.textContent = '-- km';
+      return;
+    }
+
+    el.textContent = formatDistance(latestDistanceKm, distanceUnitMode);
+
+    if (!animated) return;
+
+    el.classList.remove('distance-swap');
+    void el.offsetWidth;
+    el.classList.add('distance-swap');
+  }
+
+  function simplifyDestination(label) {
+    if (!label) return 'Bekleniyor...';
+    return label;
+  }
+
+  function locationSignature(value) {
+    if (!value) return 'none';
+    return `${value.lat}|${value.lon}|${value.short_label || value.label || value.medium_label || value.full_label || ''}`;
+  }
+
+  async function syncState() {
+    try {
+      const response = await fetch(`${API}/state`);
+      const state = await response.json();
+      const nextRoadHudVisibility = state.show_road_hud_overlay !== false;
+      const visibilityChanged = nextRoadHudVisibility !== showRoadHudOverlay;
+      const nextOverlayMode = normalizeOverlayMode(state.overlay_mode);
+      const overlayModeChanged = nextOverlayMode !== overlayMode;
+      const nextHasPullKey = Boolean(state.has_rtirl_key);
+      const nextPullKeyRevision = Number(state.rtirl_key_revision || 0);
+      const keyStateChanged = nextHasPullKey !== hasPullKey || nextPullKeyRevision !== pullKeyRevision;
+
+      const prevDestSig = locationSignature(destination);
+      const nextDestSig = locationSignature(state.destination);
+      const prevPickupSig = locationSignature(pickup);
+      const nextPickupSig = locationSignature(state.pickup);
+      const nextShowPickup = Boolean(state.show_pickup);
+      const pickupVisibilityChanged = nextShowPickup !== showPickup;
+      const nextFareAmount = typeof state.fare_amount === 'string'
+        ? state.fare_amount
+        : state.fare_amount == null
+          ? ''
+          : String(state.fare_amount);
+      const nextShowFare = Boolean(state.show_fare);
+      const nextCargoText = typeof state.cargo_text === 'string'
+        ? state.cargo_text
+        : state.cargo_text == null
+          ? ''
+          : String(state.cargo_text);
+      const nextShowCargo = Boolean(state.show_cargo);
+      const nextOfferDefaultText = normalizeOfferText(state.offer_default_text, DEFAULT_OFFER_TEXT);
+      const nextOfferCustomText = normalizeOfferText(state.offer_custom_text, '');
+
+      hasPullKey = nextHasPullKey;
+      pullKeyRevision = nextPullKeyRevision;
+      destination = state.destination || null;
+      pickup = state.pickup || null;
+      showPickup = nextShowPickup;
+      fareAmount = nextFareAmount;
+      showFare = nextShowFare;
+      cargoText = nextCargoText;
+      showCargo = nextShowCargo;
+      offerDefaultText = nextOfferDefaultText;
+      offerCustomText = nextOfferCustomText;
+      overlayMode = nextOverlayMode;
+      showRoadHudOverlay = nextRoadHudVisibility;
+      renderOfferText();
+      applyOverlayMode(overlayModeChanged);
+      applyRoadHudVisibility();
+
+      if (!showRoadHudOverlay) return;
+
+      const shortLabel = destination
+        ? destination.short_label || destination.label || destination.medium_label || destination.full_label
+        : '';
+      document.getElementById('dest-text').textContent = shortLabel ? simplifyDestination(shortLabel) : 'Bekleniyor...';
+      applyPickupMode();
+      renderFare();
+      renderCargo();
+
+      if (prevDestSig !== nextDestSig || prevPickupSig !== nextPickupSig || pickupVisibilityChanged || keyStateChanged || visibilityChanged || overlayModeChanged) {
+        totalDistance = null;
+        distanceUnitMode = 'km';
+        if (latestDistanceKm != null) {
+          renderDistance();
+        }
+        if (routeUpdateInFlight) {
+          if (!pendingRouteRefreshTimer) {
+            pendingRouteRefreshTimer = setTimeout(() => {
+              pendingRouteRefreshTimer = null;
+              updateRouteMetrics();
+            }, 220);
+          }
+        } else {
+          await updateRouteMetrics();
+        }
+      }
+    } catch {
+      hasPullKey = false;
+      pullKeyRevision = 0;
+    }
+  }
+
+  async function fetchLocation() {
+    try {
+      const response = await fetch(`${API}/location`);
+      if (!response.ok) return null;
+      const data = await response.json();
+      const lat = Number(data && data.latitude);
+      const lon = Number(data && data.longitude);
+      return Number.isFinite(lat) && Number.isFinite(lon) ? { lat, lon } : null;
+    } catch {
+      return null;
+    }
+  }
+
+  async function fetchRoute(fromLat, fromLon, toLat, toLon) {
+    try {
+      const response = await fetch(
+        `${API}/route?fromLat=${fromLat}&fromLon=${fromLon}&toLat=${toLat}&toLon=${toLon}`
+      );
+      const data = await response.json();
+
+      if (data.code === 'Ok' && data.routes.length) {
+        return {
+          distance: data.routes[0].distance / 1000,
+          duration: data.routes[0].duration / 60
+        };
+      }
+
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  function formatDistance(km, unit = 'km') {
+    if (unit === 'mi') {
+      const miles = km * 0.621371;
+      if (miles < 0.1) return Math.round(miles * 5280) + ' ft';
+      return miles.toFixed(1) + ' mi';
+    }
+
+    return km < 1 ? Math.round(km * 1000) + ' m' : km.toFixed(1) + ' km';
+  }
+
+  function formatDuration(minutes) {
+    if (minutes < 60) return Math.round(minutes) + ' dk';
+    return Math.floor(minutes / 60) + 's ' + Math.round(minutes % 60) + 'dk';
+  }
+
+  async function updateRouteMetrics() {
+    if (!showRoadHudOverlay) return;
+    if (overlayMode === 'offer') return;
+    if (routeUpdateInFlight) return;
+    if (!hasPullKey) {
+      resetMetrics();
+      return;
+    }
+    routeUpdateInFlight = true;
+    try {
+      const location = await fetchLocation();
+
+      if (!location || !destination) {
+        if (!destination || latestDistanceKm == null) {
+          resetMetrics();
+        }
+        return;
+      }
+
+      const route = await fetchRoute(location.lat, location.lon, destination.lat, destination.lon);
+      if (!route) {
+        if (latestDistanceKm == null) {
+          resetMetrics();
+        }
+        return;
+      }
+
+      if (!totalDistance) {
+        if (overlayMode === 'normal' && showPickup && hasPickupData(pickup)) {
+          const pickupRoute = await fetchRoute(pickup.lat, pickup.lon, destination.lat, destination.lon);
+          totalDistance = pickupRoute && pickupRoute.distance > 0 ? pickupRoute.distance : route.distance;
+        } else {
+          totalDistance = route.distance;
+        }
+      }
+
+      latestDistanceKm = route.distance;
+      renderDistance();
+      document.getElementById('duration-text').textContent = formatDuration(route.duration);
+
+      if (totalDistance > 0) {
+        setProgress((1 - route.distance / totalDistance) * 100);
+      }
+    } finally {
+      routeUpdateInFlight = false;
+    }
+  }
+
+  function toggleDistanceUnit() {
+    if (!showRoadHudOverlay) return;
+    if (overlayMode === 'offer') return;
+    if (latestDistanceKm == null) return;
+
+    distanceUnitMode = distanceUnitMode === 'km' ? 'mi' : 'km';
+    renderDistance(true);
+  }
+
+  applyOverlayMode();
+  applyRoadHudVisibility();
+  renderFare();
+  renderCargo();
+  syncState().then(updateRouteMetrics);
+  setInterval(syncState, STATE_INTERVAL);
+  setInterval(updateRouteMetrics, ROUTE_INTERVAL);
+  setInterval(toggleDistanceUnit, DISTANCE_UNIT_INTERVAL);
+</script>
+</body>
+</html>

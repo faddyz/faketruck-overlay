@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FakeTruck Main Overlay</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@500;600&family=Rajdhani:wght@600;700&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --gold: #f5c518;
+      --gold-soft: rgba(245, 197, 24, 0.24);
+      --panel: rgba(10, 10, 10, 0.85);
+      --panel-soft: rgba(255, 255, 255, 0.04);
+      --text: rgba(255, 255, 255, 0.96);
+      --muted: rgba(255, 255, 255, 0.72);
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: transparent;
+      font-family: 'Exo 2', sans-serif;
+    }
+
+    body {
+      display: flex;
+      align-items: flex-start;
+      justify-content: flex-start;
+      padding: 30px 34px;
+      pointer-events: none;
+    }
+
+    .hud {
+      width: 404px;
+      animation: intro 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    @keyframes intro {
+      from { opacity: 0; transform: translateY(6px) scale(0.99); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .empty {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      min-height: 48px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      color: var(--text);
+      font-size: 26px;
+      font-weight: 700;
+      font-family: 'Rajdhani', sans-serif;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .empty.visible { display: inline-flex; }
+
+    .layout.hidden { display: none; }
+
+    .layout {
+      display: grid;
+      gap: 5px;
+      width: 100%;
+    }
+
+    .top {
+      min-height: 46px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 10px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01)), var(--panel);
+      border: 1px solid rgba(245, 197, 24, 0.32);
+      box-shadow:
+        0 0 0 1px rgba(255, 235, 160, 0.04) inset,
+        0 0 12px rgba(245, 197, 24, 0.1);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .bottom {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 5px;
+    }
+
+    .card {
+      min-height: 46px;
+      border-radius: 11px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 9px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01)), var(--panel);
+      border: 1px solid rgba(245, 197, 24, 0.28);
+      box-shadow:
+        0 0 0 1px rgba(255, 235, 160, 0.03) inset,
+        0 0 10px rgba(245, 197, 24, 0.08);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .card-speed .frame-wrap,
+    .card-temp .frame-wrap {
+      transition: opacity 220ms ease, transform 220ms ease;
+      transform-origin: center;
+    }
+
+    .card-speed.is-switching .frame-wrap,
+    .card-temp.is-switching .frame-wrap {
+      opacity: 0.35;
+      transform: translateY(1px) scale(0.985);
+    }
+
+    .icon {
+      width: 16px;
+      height: 16px;
+      color: var(--gold);
+      flex: 0 0 auto;
+      filter: drop-shadow(0 0 5px rgba(245, 197, 24, 0.3));
+    }
+
+    .icon svg {
+      width: 100%;
+      height: 100%;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.1;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .frame-wrap {
+      width: 100%;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    iframe {
+      width: 100%;
+      height: 38px;
+      border: 0;
+      background: transparent;
+      display: block;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .unit-stack {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    .unit-frame {
+      position: absolute;
+      left: 0;
+      top: 0;
+      opacity: 0;
+      transform: translateY(1px) scale(0.99);
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    .unit-frame.active {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      z-index: 2;
+    }
+
+    .card-temp .unit-frame,
+    .card-speed .unit-frame {
+      top: -3px;
+    }
+
+    .card-temp .unit-frame {
+      left: 0px;
+      top: -4px;
+    }
+
+    .card-speed .unit-frame {
+      left: -2px;
+      top: -4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="hud">
+    <div class="empty" id="empty-state">
+      <span class="icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+      </span>
+      <span>RTIRL pull key bekleniyor</span>
+    </div>
+
+    <div class="layout" id="segments">
+      <div class="top">
+        <span class="icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+            <circle cx="12" cy="10" r="3"></circle>
+          </svg>
+        </span>
+        <div class="frame-wrap">
+          <iframe id="frame-location-top" scrolling="no" title="Konum ust" referrerpolicy="no-referrer"></iframe>
+        </div>
+      </div>
+
+      <div class="bottom">
+        <div class="card">
+          <span class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </span>
+          <div class="frame-wrap">
+            <iframe id="frame-time-bottom" scrolling="no" title="Saat alt" referrerpolicy="no-referrer"></iframe>
+          </div>
+        </div>
+
+        <div class="card card-temp" id="temp-card">
+          <span class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M14 14.76V3.5a2 2 0 0 0-4 0v11.26a4 4 0 1 0 4 0z"></path>
+              <line x1="12" y1="10" x2="12" y2="17"></line>
+            </svg>
+          </span>
+          <div class="frame-wrap">
+            <div class="unit-stack" id="temp-stack">
+              <iframe class="unit-frame" id="frame-temp-c" scrolling="no" title="Sicaklik C" referrerpolicy="no-referrer"></iframe>
+              <iframe class="unit-frame" id="frame-temp-f" scrolling="no" title="Sicaklik F" referrerpolicy="no-referrer"></iframe>
+            </div>
+          </div>
+        </div>
+
+        <div class="card card-speed" id="speed-card">
+          <span class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20.38 8.57A9 9 0 1 1 3.62 8.57"></path>
+              <line x1="12" y1="12" x2="16.5" y2="7.5"></line>
+            </svg>
+          </span>
+          <div class="frame-wrap">
+            <div class="unit-stack" id="speed-stack">
+              <iframe class="unit-frame" id="frame-speed-kph" scrolling="no" title="Hiz KPH" referrerpolicy="no-referrer"></iframe>
+              <iframe class="unit-frame" id="frame-speed-mph" scrolling="no" title="Hiz MPH" referrerpolicy="no-referrer"></iframe>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API = '/api';
+    const STATE_INTERVAL = 5000;
+    const UNIT_SWITCH_INTERVAL_MS = 5000;
+    const FRAME_RECOVERY_CHECK_MS = 4000;
+    const FONT_URL = 'https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&display=swap';
+    const PAGE_QUERY = new URLSearchParams(window.location.search);
+    const SPEED_STRESS_TEST = ['1', 'true', 'yes', 'on'].includes(String(PAGE_QUERY.get('speed_stress') || '').trim().toLowerCase());
+    const SPEED_UNITS = ['kph', 'mph'];
+    const TEMP_UNITS = ['C', 'F'];
+    let currentKey = '';
+    let showLocationTimeOverlay = true;
+    let speedUnitIndex = 0;
+    let tempUnitIndex = 0;
+    let tempFramesLoadedKey = '';
+    let speedFramesLoadedKey = '';
+
+    function toBase64(value) {
+      return btoa(value);
+    }
+
+    function buildCss(options) {
+      return [
+        'color: rgba(255, 255, 255, 0.96);',
+        `font-size: ${options.size}px;`,
+        'font-family: Rajdhani;',
+        `font-weight: ${options.weight};`,
+        'font-style: normal;',
+        'line-height: 1;',
+        'transform: rotate(0deg);',
+        'background-color: rgba(255, 255, 255, 0);',
+        'border-color: rgba(255, 255, 255, 0);',
+        'border-width: 0px;',
+        'border-style: solid;',
+        `text-align: ${options.align || 'left'};`,
+        'border-radius: 0% 0% 0% 0%;',
+        'padding: 0px;',
+        '-webkit-text-stroke-width: 0px;',
+        '-webkit-text-stroke-color: rgba(255, 255, 255, 0);',
+        'text-shadow: 0px 0px 0px rgba(255, 255, 255, 0);'
+      ].join('\n');
+    }
+
+    function buildOverlayUrl(path, key, extraParams, cssOptions) {
+      const params = new URLSearchParams({ key, ...extraParams });
+      params.set('css', toBase64(buildCss(cssOptions)));
+      params.set('font', toBase64(FONT_URL));
+      return `https://overlays.rtirl.com/${path}?${params.toString()}`;
+    }
+
+    function currentSpeedUnit() {
+      return SPEED_UNITS[speedUnitIndex] || 'kph';
+    }
+
+    function currentTempUnit() {
+      return TEMP_UNITS[tempUnitIndex] || 'C';
+    }
+
+    function buildTempSrc(key) {
+      return buildOverlayUrl(
+        `weather/temperature/${currentTempUnit()}.html`,
+        key,
+        {},
+        { size: 20, weight: 700, align: 'center' }
+      );
+    }
+
+    function buildSpeedStressDoc(unitKey) {
+      const unit = unitKey === 'mph' ? 'mph' : 'km/h';
+      return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    html, body { margin: 0; width: 100%; height: 100%; background: transparent; overflow: hidden; }
+    body { display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,.96); font: 700 20px/1 Rajdhani, sans-serif; font-variant-numeric: tabular-nums; letter-spacing: .15px; }
+    #v { white-space: nowrap; }
+  </style>
+</head>
+<body><div id="v">0 ${unit}</div>
+<script>
+  let value = 0;
+  setInterval(() => {
+    value = (value + 17) % 1000;
+    document.getElementById('v').textContent = value + ' ${unit}';
+  }, 70);
+<\/script>
+</body>
+</html>`;
+    }
+
+    function renderSpeedFrame(key, force = false) {
+      const frameKph = document.getElementById('frame-speed-kph');
+      const frameMph = document.getElementById('frame-speed-mph');
+      if (!frameKph || !frameMph) return;
+      if (!key) {
+        frameKph.removeAttribute('srcdoc');
+        frameMph.removeAttribute('srcdoc');
+        frameKph.src = 'about:blank';
+        frameMph.src = 'about:blank';
+        speedFramesLoadedKey = '';
+        frameKph.classList.remove('active');
+        frameMph.classList.remove('active');
+        return;
+      }
+      if (speedFramesLoadedKey !== key || force) {
+        if (SPEED_STRESS_TEST) {
+          frameKph.removeAttribute('src');
+          frameMph.removeAttribute('src');
+          frameKph.srcdoc = buildSpeedStressDoc('kph');
+          frameMph.srcdoc = buildSpeedStressDoc('mph');
+        } else {
+          frameKph.removeAttribute('srcdoc');
+          frameMph.removeAttribute('srcdoc');
+          frameKph.src = buildOverlayUrl('speed/kph.html', key, {}, { size: 20, weight: 700, align: 'center' });
+          frameMph.src = buildOverlayUrl('speed/mph.html', key, {}, { size: 20, weight: 700, align: 'center' });
+        }
+        speedFramesLoadedKey = key;
+      }
+      const activeUnit = currentSpeedUnit();
+      frameKph.classList.toggle('active', activeUnit === 'kph');
+      frameMph.classList.toggle('active', activeUnit === 'mph');
+    }
+
+    function renderTempFrame(key, force = false) {
+      const frameC = document.getElementById('frame-temp-c');
+      const frameF = document.getElementById('frame-temp-f');
+      if (!frameC || !frameF) return;
+      if (!key) {
+        frameC.src = 'about:blank';
+        frameF.src = 'about:blank';
+        tempFramesLoadedKey = '';
+        frameC.classList.remove('active');
+        frameF.classList.remove('active');
+        return;
+      }
+      if (tempFramesLoadedKey !== key || force) {
+        frameC.src = buildOverlayUrl('weather/temperature/C.html', key, {}, { size: 22, weight: 700, align: 'center' });
+        frameF.src = buildOverlayUrl('weather/temperature/F.html', key, {}, { size: 22, weight: 700, align: 'center' });
+        tempFramesLoadedKey = key;
+      }
+      const activeUnit = currentTempUnit();
+      frameC.classList.toggle('active', activeUnit === 'C');
+      frameF.classList.toggle('active', activeUnit === 'F');
+    }
+
+    function toggleSpeedUnitAnimated() {
+      if (!showLocationTimeOverlay || !currentKey) return;
+      speedUnitIndex = (speedUnitIndex + 1) % SPEED_UNITS.length;
+      const card = document.getElementById('speed-card');
+      if (card) {
+        card.classList.add('is-switching');
+      }
+      setTimeout(() => {
+        renderSpeedFrame(currentKey);
+      }, 120);
+      setTimeout(() => {
+        if (card) card.classList.remove('is-switching');
+      }, 360);
+    }
+
+    function toggleTempUnitAnimated() {
+      if (!showLocationTimeOverlay || !currentKey) return;
+      tempUnitIndex = (tempUnitIndex + 1) % TEMP_UNITS.length;
+      const card = document.getElementById('temp-card');
+      if (card) {
+        card.classList.add('is-switching');
+      }
+      setTimeout(() => {
+        renderTempFrame(currentKey);
+      }, 120);
+      setTimeout(() => {
+        if (card) card.classList.remove('is-switching');
+      }, 360);
+    }
+
+    function toggleUnitsAnimated() {
+      toggleTempUnitAnimated();
+      toggleSpeedUnitAnimated();
+    }
+
+    function buildSources(key) {
+      const neighborhoodLong = "${data.neighborhood ? data.neighborhood.text + ', ' : ''}${data.place ? data.place.text : ''}";
+
+      return {
+        locationTop: buildOverlayUrl('neighborhood.html', key, { lang: 'en', format: neighborhoodLong }, { size: 22, weight: 700 }),
+        timeBottom: buildOverlayUrl('datetime/luxon.html', key, { lang: 'tr', format: 'T' }, { size: 22, weight: 700 })
+      };
+    }
+
+    function isBlankSrc(value) {
+      const src = String(value || '').trim().toLowerCase();
+      return !src || src === 'about:blank';
+    }
+
+    function ensureWidgetFrames(key, force = false) {
+      if (!key) return;
+      const locationFrame = document.getElementById('frame-location-top');
+      const timeFrame = document.getElementById('frame-time-bottom');
+      const src = buildSources(key);
+
+      if (locationFrame && (force || isBlankSrc(locationFrame.getAttribute('src')))) {
+        locationFrame.src = src.locationTop;
+      }
+      if (timeFrame && (force || isBlankSrc(timeFrame.getAttribute('src')))) {
+        timeFrame.src = src.timeBottom;
+      }
+
+      renderTempFrame(key, force);
+      renderSpeedFrame(key, force);
+    }
+
+    function clearFrames() {
+      document.getElementById('frame-location-top').src = 'about:blank';
+      document.getElementById('frame-time-bottom').src = 'about:blank';
+      renderTempFrame('');
+      renderSpeedFrame('');
+    }
+
+    function applyOverlayVisibility() {
+      const hud = document.querySelector('.hud');
+      hud.style.display = showLocationTimeOverlay ? '' : 'none';
+
+      if (!showLocationTimeOverlay) {
+        clearFrames();
+      }
+    }
+
+    function renderKeyState(key) {
+      const empty = document.getElementById('empty-state');
+      const segments = document.getElementById('segments');
+
+      if (!showLocationTimeOverlay) {
+        empty.classList.remove('visible');
+        segments.classList.add('hidden');
+        return;
+      }
+
+      if (!key) {
+        empty.classList.add('visible');
+        segments.classList.add('hidden');
+        clearFrames();
+        return;
+      }
+
+      empty.classList.remove('visible');
+      segments.classList.remove('hidden');
+      ensureWidgetFrames(key, true);
+    }
+
+    async function syncState() {
+      try {
+        const response = await fetch(`${API}/state`);
+        const state = await response.json();
+        const nextVisible = state.show_location_time_overlay !== false;
+        const visibilityChanged = nextVisible !== showLocationTimeOverlay;
+        const nextKey = (state.rtirl_key || '').trim();
+
+        showLocationTimeOverlay = nextVisible;
+        applyOverlayVisibility();
+
+        if (!showLocationTimeOverlay) return;
+
+        if (nextKey !== currentKey || visibilityChanged) {
+          currentKey = nextKey;
+          renderKeyState(currentKey);
+        } else if (currentKey) {
+          ensureWidgetFrames(currentKey, false);
+        }
+      } catch {
+        if (currentKey) {
+          currentKey = '';
+          renderKeyState('');
+        }
+      }
+    }
+
+    applyOverlayVisibility();
+    renderKeyState('');
+    syncState();
+    setInterval(syncState, STATE_INTERVAL);
+    setInterval(toggleUnitsAnimated, UNIT_SWITCH_INTERVAL_MS);
+    setInterval(() => {
+      if (!showLocationTimeOverlay || !currentKey) return;
+      const locationFrame = document.getElementById('frame-location-top');
+      const timeFrame = document.getElementById('frame-time-bottom');
+      const tempFrameC = document.getElementById('frame-temp-c');
+      const tempFrameF = document.getElementById('frame-temp-f');
+      const speedFrameKph = document.getElementById('frame-speed-kph');
+      const speedFrameMph = document.getElementById('frame-speed-mph');
+      const needsRecovery = (
+        isBlankSrc(locationFrame && locationFrame.getAttribute('src'))
+        || isBlankSrc(timeFrame && timeFrame.getAttribute('src'))
+        || isBlankSrc(tempFrameC && tempFrameC.getAttribute('src'))
+        || isBlankSrc(tempFrameF && tempFrameF.getAttribute('src'))
+        || isBlankSrc(speedFrameKph && speedFrameKph.getAttribute('src'))
+        || isBlankSrc(speedFrameMph && speedFrameMph.getAttribute('src'))
+      );
+      if (needsRecovery) {
+        ensureWidgetFrames(currentKey, true);
+      }
+    }, FRAME_RECOVERY_CHECK_MS);
+  </script>
+</body>
+</html>

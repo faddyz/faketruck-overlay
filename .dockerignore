@@ -1,0 +1,13 @@
+node_modules
+npm-debug.log
+.git
+.gitignore
+.env
+data/
+data/runtime.json
+data/*.log
+*.log
+cloudflared.exe
+cloudflared.log
+server.out.log
+server.err.log

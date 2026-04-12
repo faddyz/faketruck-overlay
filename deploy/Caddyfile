@@ -1,0 +1,39 @@
+{$DOMAIN} {
+  encode zstd gzip
+
+  @admin_page path /admin.html
+  @api_write {
+    method POST
+    path /api/state /api/location /api/mock-location/start /api/mock-location/step /api/mock-location/stop
+  }
+  @admin_api_read path /api/events /api/events/history /api/kick/status
+
+  route {
+    handle @api_write {
+      basic_auth {
+        {$ADMIN_USER} {$ADMIN_PASSWORD_HASH}
+      }
+      reverse_proxy app:3456 {
+        header_up X-Admin-Api-Key {$STATE_WRITE_API_KEY}
+      }
+    }
+
+    handle @admin_page {
+      basic_auth {
+        {$ADMIN_USER} {$ADMIN_PASSWORD_HASH}
+      }
+      reverse_proxy app:3456
+    }
+
+    handle @admin_api_read {
+      basic_auth {
+        {$ADMIN_USER} {$ADMIN_PASSWORD_HASH}
+      }
+      reverse_proxy app:3456
+    }
+
+    handle {
+      reverse_proxy app:3456
+    }
+  }
+}

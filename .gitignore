@@ -1,0 +1,10 @@
+node_modules/
+data/kick-auth.json
+data/kick-ws.json
+data/app-state.json
+data/admin-events.json
+data/*.json
+.env
+data/runtime.json
+*.log
+data/*.log

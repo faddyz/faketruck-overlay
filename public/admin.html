@@ -1,0 +1,3375 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FakeTruck Admin</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --gold: #f5c518;
+    --bg: #0b0c0f;
+    --card: #14171c;
+    --border: rgba(255,255,255,.10);
+    --text: #e8ecf1;
+    --muted: #9aa3b2;
+    --green: #4ade80;
+    --red: #e45858;
+    --line: #2a2f38;
+  }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    line-height: 1.45;
+    min-height: 100vh;
+    padding: 24px 14px 50px;
+  }
+  .wrap {
+    width: 100%;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+  header {
+    text-align: center;
+    margin-bottom: 22px;
+  }
+  .logo { display: inline-flex; align-items: center; margin-bottom: 6px; }
+  .logo-fake {
+    background: var(--gold);
+    color: #111;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    padding: 4px 14px;
+    border-radius: 8px 0 0 8px;
+    letter-spacing: 1px;
+  }
+  .logo-truck-wrap {
+    background: #222;
+    border: 2px solid var(--gold);
+    border-left: none;
+    border-radius: 0 8px 8px 0;
+    padding: 4px 28px 4px 12px;
+    position: relative;
+  }
+  .logo-truck-wrap::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    border-style: solid;
+    border-width: 0 22px 22px 0;
+    border-color: transparent var(--gold) transparent transparent;
+  }
+  .logo-truck-wrap span {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    color: var(--gold);
+    letter-spacing: 1px;
+  }
+  header p {
+    color: var(--muted);
+    font-size: 12px;
+    letter-spacing: 1.1px;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  .tabs {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .tab-btn {
+    border: 1px solid var(--line);
+    background: #111419;
+    color: var(--muted);
+    font-family: 'Inter', sans-serif;
+    letter-spacing: .2px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 10px;
+    padding: 11px 10px;
+    cursor: pointer;
+    transition: all .15s ease;
+  }
+  .tab-btn:hover { color: var(--text); border-color: #3a414e; background: #181c23; }
+  .tab-btn.active {
+    color: #111;
+    background: var(--gold);
+    border-color: var(--gold);
+  }
+
+  .tab-pane { display: none; }
+  .tab-pane.active { display: block; }
+
+  .panel {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(to right, var(--gold), transparent);
+  }
+  .card-full { grid-column: 1 / -1; }
+  .card-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    color: var(--gold);
+    letter-spacing: .7px;
+    margin-bottom: 12px;
+  }
+  .card-title.with-icon {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .title-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    line-height: 1;
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.16);
+    flex: 0 0 auto;
+  }
+  .card-data .title-icon {
+    color: var(--data-accent);
+    border-color: rgba(255,255,255,.28);
+    background: rgba(0,0,0,.24);
+  }
+  .card-data {
+    --data-accent: var(--gold);
+    --data-surface: rgba(245,197,24,.03);
+    --data-border: #3a3f49;
+    background: linear-gradient(180deg, var(--data-surface) 0%, var(--card) 60%);
+    border-color: var(--data-border);
+  }
+  .card-data::before {
+    height: 3px;
+    background: linear-gradient(to right, var(--data-accent), transparent 78%);
+  }
+  .card-data .card-title {
+    color: var(--data-accent);
+  }
+  .card-fare { --data-accent: #f5c518; --data-surface: rgba(245,197,24,.045); --data-border: rgba(245,197,24,.28); }
+  .card-cargo { --data-accent: #60a5fa; --data-surface: rgba(96,165,250,.045); --data-border: rgba(96,165,250,.28); }
+  .card-dest { --data-accent: #fb923c; --data-surface: rgba(251,146,60,.045); --data-border: rgba(251,146,60,.30); }
+  .card-pickup { --data-accent: #34d399; --data-surface: rgba(52,211,153,.045); --data-border: rgba(52,211,153,.30); }
+  .card-route { --data-accent: #a78bfa; --data-surface: rgba(167,139,250,.04); --data-border: rgba(167,139,250,.28); }
+
+  .field { margin-bottom: 12px; }
+  .field:last-child { margin-bottom: 0; }
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  input[type="text"], input[type="password"] {
+    width: 100%;
+    background: #0f1217;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    padding: 10px 12px;
+    outline: none;
+  }
+  input::placeholder {
+    color: #7f8998;
+    opacity: 1;
+  }
+  input:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 2px rgba(245,197,24,.1);
+  }
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .btn {
+    width: 100%;
+    padding: 11px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: .2px;
+    font-size: 15px;
+    font-weight: 600;
+    transition: .15s ease;
+  }
+  .btn:disabled {
+    opacity: .48;
+    cursor: not-allowed;
+    filter: saturate(.35);
+    box-shadow: none !important;
+  }
+  .btn.is-loading {
+    position: relative;
+    color: transparent !important;
+    pointer-events: none;
+  }
+  .btn.is-loading::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,.28);
+    border-top-color: rgba(255,255,255,.95);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: spin .65s linear infinite;
+  }
+  @keyframes spin {
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+  }
+  .btn-primary { background: var(--gold); color: #111; }
+  .btn-primary:hover { background: #ffd740; }
+  .btn-secondary { background: #151920; color: var(--text); border-color: #36404e; }
+  .btn-secondary:hover { background: #1b212b; border-color: #455060; }
+  .btn-success {
+    background: #1f9d63;
+    color: #f3fff9;
+    border-color: #2eb675;
+  }
+  .btn-success:hover {
+    background: #24ae6f;
+    border-color: #39ca86;
+  }
+  .btn-danger { background: #181318; color: var(--red); border-color: rgba(228,88,88,.65); }
+  .btn-danger:hover { background: #23171b; border-color: rgba(228,88,88,.95); }
+  .btn-toggle-active { background: rgba(245,197,24,.14); border-color: rgba(245,197,24,.70); box-shadow: inset 0 0 0 1px rgba(245,197,24,.35); }
+
+  .status-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    background: #0f1217;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: .2px;
+  }
+  .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .dot-green  { background: var(--green); box-shadow: 0 0 8px var(--green); }
+  .dot-red    { background: var(--red); box-shadow: 0 0 8px var(--red); }
+  .dot-yellow { background: var(--gold); box-shadow: 0 0 8px var(--gold); }
+  .loc-mono { font-family: monospace; font-size: 13px; color: var(--muted); margin-top: 8px; }
+  .log-box {
+    background: #0f1217;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text);
+  }
+  .log-box .k { color: var(--muted); font-size: 12px; letter-spacing: .25px; text-transform: uppercase; }
+  .log-box .v { color: var(--gold); font-weight: 700; overflow-wrap: anywhere; word-break: break-word; }
+  .log-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .log-summary-item {
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 8px;
+    background: rgba(255,255,255,.02);
+    padding: 8px 10px;
+  }
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid rgba(255,255,255,.16);
+    border-radius: 999px;
+    padding: 2px 8px;
+    font-size: 12px;
+    line-height: 1.2;
+    letter-spacing: .2px;
+    color: var(--muted);
+    background: rgba(255,255,255,.04);
+    margin-left: 6px;
+  }
+  .status-pill.connected {
+    color: #8ff0ca;
+    border-color: rgba(52,211,153,.56);
+    background: rgba(52,211,153,.12);
+  }
+  .status-pill.reconnecting {
+    color: #ffe58a;
+    border-color: rgba(245,197,24,.58);
+    background: rgba(245,197,24,.14);
+  }
+  .status-pill.offline,
+  .status-pill.disabled {
+    color: #ffb0b0;
+    border-color: rgba(228,88,88,.56);
+    background: rgba(228,88,88,.12);
+  }
+  .log-list {
+    margin-top: 8px;
+    border-top: 1px solid rgba(255,255,255,.08);
+    padding-top: 8px;
+    color: var(--text);
+  }
+  .log-list ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .log-list li { margin-left: 0; }
+  .log-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+  .log-toolbar-meta {
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .log-actions {
+    display: inline-flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .log-actions .btn {
+    width: auto;
+    min-width: 98px;
+    padding: 8px 11px;
+    font-size: 12px;
+    min-height: 34px;
+  }
+  .log-filter-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+  .log-filter-btn {
+    width: auto;
+    padding: 7px 10px;
+    min-height: 32px;
+    font-size: 12px;
+    border-radius: 999px;
+  }
+  .log-feed {
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 8px;
+    background: rgba(0,0,0,.18);
+    max-height: 310px;
+    overflow: auto;
+  }
+  .log-feed li {
+    border-bottom: 1px solid rgba(255,255,255,.05);
+    padding: 7px 9px;
+    font-size: 12px;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+  .log-feed li:last-child {
+    border-bottom: none;
+  }
+  .log-kind {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .25px;
+    border: 1px solid rgba(255,255,255,.22);
+    border-radius: 999px;
+    padding: 1px 6px;
+    margin-right: 6px;
+    color: var(--muted);
+    background: rgba(255,255,255,.06);
+  }
+  .log-kind.chat {
+    border-color: rgba(96,165,250,.56);
+    color: #bbd7ff;
+    background: rgba(96,165,250,.12);
+  }
+  .log-kind.feedback {
+    border-color: rgba(52,211,153,.56);
+    color: #9bf2d1;
+    background: rgba(52,211,153,.12);
+  }
+  .log-kind.panel {
+    border-color: rgba(251,146,60,.58);
+    color: #ffd0ad;
+    background: rgba(251,146,60,.12);
+  }
+  .log-kind.system {
+    border-color: rgba(156,163,175,.5);
+    color: #d1d5db;
+    background: rgba(156,163,175,.12);
+  }
+  .log-subfeed {
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 8px;
+    background: rgba(0,0,0,.14);
+    max-height: 120px;
+    overflow: auto;
+    padding: 6px 8px;
+  }
+  .log-subfeed li {
+    padding: 3px 0;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+  .log-empty {
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  .results-list { list-style: none; margin-top: 10px; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; display: none; }
+  .results-list.visible { display: block; }
+  .result-item { padding: 10px 12px; cursor: pointer; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,.05); }
+  .result-item:last-child { border-bottom: none; }
+  .result-item:hover { background: rgba(245,197,24,.08); }
+  .result-item.active {
+    background: rgba(245,197,24,.14);
+    border-left: 3px solid var(--gold);
+    padding-left: 9px;
+  }
+  .result-item .sub {
+    display: block;
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .dest-badge {
+    background: rgba(245,197,24,.1);
+    border: 1px solid rgba(245,197,24,.22);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--gold);
+  }
+  .dest-badge .addr { color: var(--text); font-weight: 600; font-size: 13px; margin-top: 3px; }
+  .dest-badge .addr { overflow-wrap: anywhere; word-break: break-word; }
+  .dest-badge-dest {
+    background: rgba(251,146,60,.12);
+    border-color: rgba(251,146,60,.38);
+  }
+  .dest-badge-pickup {
+    background: rgba(52,211,153,.12);
+    border-color: rgba(52,211,153,.38);
+  }
+  .btn-note {
+    margin-top: 6px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .inline-status {
+    margin-top: 8px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: rgba(255,255,255,.02);
+    color: var(--muted);
+    font-size: 13px;
+    padding: 7px 9px;
+  }
+  .inline-status.ok {
+    border-color: rgba(52,211,153,.48);
+    color: #8ff0ca;
+    background: rgba(52,211,153,.08);
+  }
+  .inline-status.err {
+    border-color: rgba(228,88,88,.48);
+    color: #ffb0b0;
+    background: rgba(228,88,88,.09);
+  }
+  .pickup-actions-main {
+    border: 1px solid rgba(52,211,153,.34);
+    background: rgba(52,211,153,.05);
+    border-radius: 10px;
+    padding: 8px;
+  }
+  .pickup-actions-secondary {
+    margin-top: 8px;
+    border: 1px solid rgba(255,255,255,.09);
+    border-radius: 10px;
+    padding: 8px;
+    background: rgba(255,255,255,.01);
+  }
+  .action-caption {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: .2px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+
+  .overlay-ctrl-row { display: grid; gap: 8px; margin-bottom: 10px; }
+  .overlay-ctrl-row:last-child { margin-bottom: 0; }
+  .overlay-ctrl-label { font-size: 12px; letter-spacing: .3px; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+  .overlay-ctrl-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .overlay-state-badge {
+    border: 1px solid rgba(255,255,255,.14);
+    border-radius: 999px;
+    padding: 3px 9px;
+    font-size: 12px;
+    line-height: 1;
+    letter-spacing: .25px;
+    color: var(--muted);
+    background: rgba(255,255,255,.04);
+    white-space: nowrap;
+  }
+  .overlay-state-badge.on {
+    border-color: rgba(52,211,153,.55);
+    color: #8ff0ca;
+    background: rgba(52,211,153,.14);
+  }
+  .overlay-state-badge.off {
+    border-color: rgba(228,88,88,.5);
+    color: #ffb0b0;
+    background: rgba(228,88,88,.12);
+  }
+  .overlay-state-badge.mode {
+    border-color: rgba(245,197,24,.55);
+    color: #ffe58a;
+    background: rgba(245,197,24,.12);
+  }
+  .overlay-mode-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .overlay-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .overlay-preview-btn {
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+  }
+
+  .commands-topbar {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .commands-hint {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #11151b;
+    padding: 10px 12px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.45;
+  }
+  .commands-search input {
+    width: 100%;
+  }
+  .commands-summary {
+    margin-bottom: 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #11151b;
+    padding: 10px 12px;
+    color: var(--text);
+    font-size: 13px;
+  }
+  .commands-layout { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  .command-section {
+    position: relative;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--section-bg, #10141a);
+    padding: 10px;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.02);
+  }
+  .command-section::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    border-radius: 10px 0 0 10px;
+    background: var(--section-accent, var(--gold));
+  }
+  .command-section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    background: var(--section-head-bg, rgba(255,255,255,.02));
+  }
+  .command-section-title {
+    font-size: 13px;
+    letter-spacing: .4px;
+    color: var(--section-accent, var(--text));
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .command-section-meta {
+    font-size: 12px;
+    color: var(--muted);
+    border: 1px solid #3a4453;
+    border-radius: 999px;
+    padding: 3px 10px;
+    white-space: nowrap;
+  }
+  .command-section-meta.changed {
+    color: #111;
+    background: var(--gold);
+    border-color: var(--gold);
+    font-weight: 700;
+  }
+  .command-table {
+    display: grid;
+    gap: 6px;
+  }
+  .command-header,
+  .command-row {
+    display: grid;
+    grid-template-columns: 1.65fr .9fr 1.15fr 1.5fr;
+    gap: 8px;
+    align-items: stretch;
+  }
+  .command-header {
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .2px;
+    padding: 0 4px;
+  }
+  .command-cell {
+    background: var(--section-cell-bg, #141922);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 8px 10px;
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+  }
+  .command-cell.cmd-name {
+    color: var(--text);
+    font-weight: 600;
+  }
+  .command-cell input {
+    width: 100%;
+    padding: 7px 8px;
+    min-height: 0;
+    font-size: 14px;
+  }
+  .command-usage {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    font-size: 12px;
+    color: #d9e1ee;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+  }
+  .command-custom-box {
+    margin-top: 12px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "input button"
+      "meta meta";
+    gap: 8px;
+    align-items: center;
+  }
+  .command-custom-box input {
+    grid-area: input;
+    width: 100%;
+  }
+  .command-custom-box .btn {
+    grid-area: button;
+    white-space: nowrap;
+  }
+  .custom-offer-meta {
+    grid-area: meta;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .custom-offer-count {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    color: #9fb0c5;
+  }
+  .custom-offer-count.warn {
+    color: #f5c518;
+  }
+  .custom-offer-count.danger {
+    color: #ff8d8d;
+  }
+  .custom-offer-hint {
+    text-align: right;
+    opacity: .9;
+  }
+  .command-row.changed .command-cell {
+    border-color: rgba(245,197,24,.55);
+  }
+  .command-row.conflict .command-cell {
+    border-color: rgba(228,88,88,.85);
+    background: #22171b;
+  }
+  .command-row.conflict .command-usage {
+    color: #ff9fa7;
+  }
+  .command-actions {
+    margin-top: 10px;
+  }
+  .command-section .command-actions .btn-secondary {
+    border-color: var(--section-accent-dim, #455060);
+    color: var(--section-accent, var(--text));
+    background: rgba(0,0,0,.15);
+  }
+  .command-section .command-actions .btn-secondary:hover {
+    border-color: var(--section-accent, var(--text));
+    background: rgba(0,0,0,.28);
+  }
+
+  .guide {
+    margin-top: 10px;
+    background: rgba(245,197,24,.05);
+    border: 1px dashed rgba(245,197,24,.24);
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--muted);
+  }
+  .guide strong { color: var(--gold); }
+  .guide code { background: rgba(255,255,255,.08); padding: 1px 6px; border-radius: 4px; color: var(--text); }
+
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: #181b21;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    letter-spacing: .4px;
+    font-weight: 600;
+    padding: 10px 22px;
+    border-radius: 30px;
+    transition: transform .25s ease;
+    z-index: 999;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 1000px) {
+    .tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .panel { grid-template-columns: 1fr; }
+    .card-full { grid-column: auto; }
+    .commands-topbar { grid-template-columns: 1fr; }
+    .command-header,
+    .command-row { grid-template-columns: 1fr; }
+    .command-section::before { width: 3px; }
+    .overlay-mode-grid,
+    .overlay-preview-grid { grid-template-columns: 1fr; }
+    .log-summary { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) {
+    .row2 { grid-template-columns: 1fr; }
+    .btn { min-height: 44px; }
+    .overlay-ctrl-head { flex-direction: column; align-items: flex-start; }
+    .log-actions .btn,
+    .log-filter-btn { width: 100%; }
+    .command-custom-box {
+      grid-template-columns: 1fr;
+      grid-template-areas:
+        "input"
+        "meta"
+        "button";
+    }
+    .custom-offer-meta {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .custom-offer-hint {
+      text-align: left;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">
+      <div class="logo-fake">FAKE</div>
+      <div class="logo-truck-wrap"><span>TRUCK</span></div>
+    </div>
+    <p>Yayin Admin Paneli</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="data">Konum + Yuk + Ucret</button>
+    <button class="tab-btn" data-tab="overlay">Overlay Kontrolleri</button>
+    <button class="tab-btn" data-tab="commands">Komutlar</button>
+    <button class="tab-btn" data-tab="logs">Loglar</button>
+    <button class="tab-btn" data-tab="api">API Key</button>
+  </div>
+
+  <section class="tab-pane" id="tab-api">
+    <div class="panel">
+      <div class="card card-full">
+        <div class="card-title">RTIRL API Ayari</div>
+        <div class="field">
+          <label>Pull Key</label>
+          <input type="password" id="rtirl-key" placeholder="RTIRL pull key" autocomplete="off" spellcheck="false" />
+        </div>
+        <div class="row2">
+          <button class="btn btn-primary" id="key-save-btn" type="button" onclick="saveKey()">KEY KAYDET</button>
+          <button class="btn btn-secondary" id="key-test-btn" type="button" onclick="testKey()">KEY TEST</button>
+        </div>
+        <div class="inline-status" id="api-status">Hazir.</div>
+        <div class="guide" style="margin-top:10px">
+          <strong>Guvenlik:</strong> Key sadece bu tarayicida saklanir ve sunucuya test/senkron icin gonderilir.
+          <strong>Not:</strong> Konum istekleri URL query yerine request body ile atilir.
+        </div>
+        <div style="margin-top:12px">
+          <div class="status-bar" id="gps-status-bar">
+            <div class="dot dot-yellow" id="gps-dot"></div>
+            <span id="gps-status-text">GPS durumu bilinmiyor</span>
+          </div>
+          <div class="loc-mono" id="loc-display"></div>
+        </div>
+      </div>
+
+      <div class="card card-full">
+        <div class="card-title">OBS Kisa Kurulum</div>
+        <div class="guide">
+          <strong>URL:</strong><br>
+          <code>http://localhost:3456/road-overlay.html</code><br>
+          <code>http://localhost:3456/hud-overlay.html</code><br>
+          <code>http://localhost:3456/map-overlay.html</code><br><br>
+          <strong>Boyut:</strong><br>
+          <code>road-overlay: 800x600</code><br>
+          <code>hud-overlay: 1000x150</code><br>
+          <code>map-overlay: 800x600</code>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tab-pane active" id="tab-data">
+    <div class="panel">
+      <div class="card card-data card-fare">
+        <div class="card-title with-icon"><span class="title-icon" aria-hidden="true">$</span><span>Alinacak Ucret</span></div>
+        <div class="field">
+          <label>Ucret Metni</label>
+          <input type="text" id="fare-input" placeholder="Orn: 12500" />
+        </div>
+        <div class="row2">
+          <button class="btn btn-primary" id="fare-save-btn" onclick="saveFareAmount()">KAYDET</button>
+          <button class="btn btn-secondary" onclick="clearFareAmount()">TEMIZLE</button>
+        </div>
+        <div style="margin-top:8px" class="row2">
+          <button class="btn btn-secondary" id="fare-show-btn" onclick="showFareOnOverlay()">GOSTER</button>
+          <button class="btn btn-secondary" id="fare-hide-btn" onclick="hideFareOnOverlay()">GIZLE</button>
+        </div>
+        <div class="inline-status" id="fare-status">Hazir.</div>
+      </div>
+
+      <div class="card card-data card-cargo">
+        <div class="card-title with-icon"><span class="title-icon" aria-hidden="true">&#9638;</span><span>Tasinan Yuk</span></div>
+        <div class="field">
+          <label>Yuk Metni</label>
+          <input type="text" id="cargo-input" placeholder="Orn: Frigorifik Gida" />
+        </div>
+        <div class="row2">
+          <button class="btn btn-primary" id="cargo-save-btn" onclick="saveCargoText()">KAYDET</button>
+          <button class="btn btn-secondary" onclick="clearCargoText()">TEMIZLE</button>
+        </div>
+        <div style="margin-top:8px" class="row2">
+          <button class="btn btn-secondary" id="cargo-show-btn" onclick="showCargoOnOverlay()">GOSTER</button>
+          <button class="btn btn-secondary" id="cargo-hide-btn" onclick="hideCargoOnOverlay()">GIZLE</button>
+        </div>
+        <div class="inline-status" id="cargo-status">Hazir.</div>
+      </div>
+
+      <div class="card card-data card-dest">
+        <div class="card-title with-icon"><span class="title-icon" aria-hidden="true">&#9678;</span><span>Varis Konumu</span></div>
+        <div class="field">
+          <label>Adres Ara</label>
+          <input type="text" id="addr-input" placeholder="Orn: Taksim Istanbul" oninput="onAddrInput()" autocomplete="off" aria-controls="results-list" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-activedescendant="" />
+        </div>
+        <ul class="results-list" id="results-list" role="listbox" aria-label="Varis konumu sonuclari"></ul>
+        <div id="selected-dest" style="display:none;margin-bottom:10px">
+          <div class="dest-badge dest-badge-dest">
+            <div style="font-size:12px;letter-spacing:.6px;opacity:.88">SECILI HEDEF</div>
+            <div class="addr" id="sel-addr">-</div>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="set-dest-btn" onclick="setDestination()" disabled>&#10140; HEDEFI AYARLA</button>
+        <div class="btn-note" id="dest-btn-note">Hedef secilmeden bu islem acilmaz.</div>
+        <div class="inline-status" id="dest-status">Hazir.</div>
+        <div style="margin-top:8px">
+          <button class="btn btn-danger" onclick="clearDestination()">HEDEFI TEMIZLE</button>
+        </div>
+      </div>
+
+      <div class="card card-data card-pickup">
+        <div class="card-title with-icon"><span class="title-icon" aria-hidden="true">&#8982;</span><span>Yuk Alinan Konum</span></div>
+        <div class="pickup-actions-main">
+          <div class="action-caption">Hizli Islem (Onerilen)</div>
+          <button class="btn btn-success" id="pickup-current-btn" onclick="useCurrentLocationAsPickup()">&#8982; ANLIK KONUMU AL (ONERILEN)</button>
+          <div class="btn-note">Mevcut konumu otomatik alip pickup olarak uygular.</div>
+        </div>
+        <div class="field">
+          <label>Manuel Konum Ara</label>
+          <input type="text" id="pickup-input" placeholder="Orn: Los Angeles" oninput="onPickupInput()" autocomplete="off" aria-controls="pickup-results-list" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-activedescendant="" />
+        </div>
+        <ul class="results-list" id="pickup-results-list" role="listbox" aria-label="Pickup konum sonuclari"></ul>
+        <div id="selected-pickup" style="display:none;margin-bottom:10px">
+          <div class="dest-badge dest-badge-pickup">
+            <div style="font-size:12px;letter-spacing:.6px;opacity:.88">SECILI PICKUP</div>
+            <div class="addr" id="sel-pickup-addr">-</div>
+            <div style="font-size:12px;letter-spacing:.6px;opacity:.88;margin-top:6px">OVERLAY ETIKETI</div>
+            <div class="addr" id="sel-pickup-overlay">-</div>
+          </div>
+        </div>
+        <div class="pickup-actions-secondary">
+          <div class="action-caption">Manuel Secim</div>
+          <button class="btn btn-primary" id="set-pickup-btn" onclick="applyPickup()" disabled>&#10003; MANUEL SECIMI UYGULA</button>
+        </div>
+        <div class="btn-note" id="pickup-btn-note">Manuel secim yapmadan uygulama pasif.</div>
+        <div class="inline-status" id="pickup-status">Hazir.</div>
+        <div class="pickup-actions-secondary">
+          <div class="action-caption">Diger Islemler</div>
+          <div class="row2">
+            <button class="btn btn-secondary" onclick="hidePickupOnOverlay()">OVERLAY GIZLE</button>
+            <button class="btn btn-danger" onclick="clearPickup()">PICKUP TEMIZLE</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card card-full card-data card-route" id="route-card" style="display:none">
+        <div class="card-title with-icon"><span class="title-icon" aria-hidden="true">&#10140;</span><span>Aktif Rota</span></div>
+        <div class="row2">
+          <div class="status-bar" style="flex-direction:column;align-items:flex-start;gap:3px;">
+            <span style="font-size:12px;color:var(--muted);letter-spacing:1px;">KALAN MESAFE</span>
+            <span style="font-size:21px;font-family:'Inter',sans-serif;font-weight:700;color:var(--gold);" id="live-dist">- km</span>
+          </div>
+          <div class="status-bar" style="flex-direction:column;align-items:flex-start;gap:3px;">
+            <span style="font-size:12px;color:var(--muted);letter-spacing:1px;">TAHMINI SURE</span>
+            <span style="font-size:21px;font-family:'Inter',sans-serif;font-weight:700;color:var(--gold);" id="live-dur">- dk</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tab-pane" id="tab-overlay">
+    <div class="panel">
+      <div class="card card-full">
+        <div class="card-title">Overlay Kontrolleri</div>
+
+        <div class="overlay-ctrl-row">
+          <div class="overlay-ctrl-head">
+            <div class="overlay-ctrl-label">Yol Overlay</div>
+            <div class="overlay-state-badge" id="road-overlay-state">Durum: -</div>
+          </div>
+          <div class="row2">
+            <button class="btn btn-secondary" id="road-overlay-show-btn" aria-label="Yol overlay goster" onclick="setOverlayVisibility('road', true, this)">Goster</button>
+            <button class="btn btn-secondary" id="road-overlay-hide-btn" aria-label="Yol overlay gizle" onclick="setOverlayVisibility('road', false, this)">Gizle</button>
+          </div>
+        </div>
+
+        <div class="overlay-ctrl-row">
+          <div class="overlay-ctrl-head">
+            <div class="overlay-ctrl-label">Lokasyon Overlay</div>
+            <div class="overlay-state-badge" id="location-overlay-state">Durum: -</div>
+          </div>
+          <div class="row2">
+            <button class="btn btn-secondary" id="location-overlay-show-btn" aria-label="Lokasyon overlay goster" onclick="setOverlayVisibility('location', true, this)">Goster</button>
+            <button class="btn btn-secondary" id="location-overlay-hide-btn" aria-label="Lokasyon overlay gizle" onclick="setOverlayVisibility('location', false, this)">Gizle</button>
+          </div>
+        </div>
+
+        <div class="overlay-ctrl-row">
+          <div class="overlay-ctrl-head">
+            <div class="overlay-ctrl-label">Harita Overlay</div>
+            <div class="overlay-state-badge" id="map-overlay-state">Durum: -</div>
+          </div>
+          <div class="row2">
+            <button class="btn btn-secondary" id="map-overlay-show-btn" aria-label="Harita overlay goster" onclick="setOverlayVisibility('map', true, this)">Goster</button>
+            <button class="btn btn-secondary" id="map-overlay-hide-btn" aria-label="Harita overlay gizle" onclick="setOverlayVisibility('map', false, this)">Gizle</button>
+          </div>
+        </div>
+
+        <div class="overlay-ctrl-row">
+          <div class="overlay-ctrl-head">
+            <div class="overlay-ctrl-label">Overlay Modu</div>
+            <div class="overlay-state-badge mode" id="overlay-mode-state">Mod: -</div>
+          </div>
+          <div class="overlay-mode-grid">
+            <button class="btn btn-secondary" id="overlay-mode-normal-btn" aria-label="Overlay modu normal" onclick="setOverlayMode('normal', this)">Normal</button>
+            <button class="btn btn-secondary" id="overlay-mode-offer-btn" aria-label="Overlay modu bekleme" onclick="setOverlayMode('offer', this)">Bekleme</button>
+            <button class="btn btn-secondary" id="overlay-mode-pickup-btn" aria-label="Overlay modu yuke gidiyor" onclick="setOverlayMode('pickup', this)">Yuke gidiyor</button>
+          </div>
+        </div>
+
+        <div class="overlay-ctrl-row">
+          <div class="overlay-ctrl-head">
+            <div class="overlay-ctrl-label">Custom Bekleme Metni</div>
+          </div>
+          <div class="command-custom-box">
+            <input type="text" id="overlay-custom-offer-quick-input" placeholder="Custom bekleme metni yazin" />
+            <button class="btn btn-primary" type="button" id="overlay-custom-offer-quick-apply-btn" onclick="applyCustomOfferDraft(this)">METNI UYGULA + OFFERA GEC</button>
+            <div class="custom-offer-meta">
+              <span class="custom-offer-count" id="overlay-custom-offer-quick-count">0/240</span>
+              <span class="custom-offer-hint" id="overlay-custom-offer-quick-hint">Emoji temizlenir, bosluklar sadeleşir.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="overlay-ctrl-row">
+          <div class="overlay-ctrl-label">Hizli Onizleme</div>
+          <div class="overlay-preview-grid">
+            <a class="btn btn-secondary overlay-preview-btn" href="/road-overlay.html" target="_blank" rel="noopener">Yol Onizleme</a>
+            <a class="btn btn-secondary overlay-preview-btn" href="/hud-overlay.html" target="_blank" rel="noopener">Main Onizleme</a>
+            <a class="btn btn-secondary overlay-preview-btn" href="/map-overlay.html" target="_blank" rel="noopener">Harita Onizleme</a>
+          </div>
+        </div>
+
+        <div class="inline-status" id="overlay-status">Hazir.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tab-pane" id="tab-commands">
+    <div class="panel">
+      <div class="card card-full">
+        <div class="card-title">Komutlar</div>
+        <div class="commands-topbar">
+          <div class="commands-hint">
+            Prefix <code>!</code> ise kullanim <code>!komut</code>. Uzun prefix ise bosluklu kullanim olur:
+            <code>!ft komut</code>.
+          </div>
+          <div class="commands-search">
+            <input type="text" id="command-search-input" placeholder="Komut ara (bolum, ad, anahtar kelime)">
+          </div>
+        </div>
+        <div class="commands-summary" id="command-summary">Komut ozeti yukleniyor...</div>
+        <div class="commands-layout" id="command-sections"></div>
+
+        <div style="margin-top:12px" class="row2">
+          <button class="btn btn-primary" id="commands-save-all-btn" onclick="saveAllCommandBindings()">HEPSINI KAYDET</button>
+          <button class="btn btn-secondary" id="commands-reset-btn" onclick="resetCommandBindingsToDefaults()">VARSAYILANLARA DON</button>
+        </div>
+
+        <div class="guide" id="command-guide"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tab-pane" id="tab-logs">
+    <div class="panel">
+      <div class="card card-full">
+        <div class="card-title">Canli Komut Geri Bildirim</div>
+        <div class="log-box">
+          <div class="log-summary">
+            <div class="log-summary-item">
+              <span class="k">Durum:</span>
+              <span class="status-pill" id="kick-live-status">Bekleniyor...</span>
+            </div>
+            <div class="log-summary-item">
+              <span class="k">Son Komut:</span>
+              <span class="v" id="kick-last-command">-</span>
+            </div>
+            <div class="log-summary-item">
+              <span class="k">Kullanici:</span>
+              <span class="v" id="kick-last-user">-</span>
+            </div>
+            <div class="log-summary-item">
+              <span class="k">Zaman:</span>
+              <span class="v" id="kick-last-at">-</span>
+            </div>
+          </div>
+          <div class="log-list">
+            <div class="k" style="margin-bottom:6px;">Geri Donus</div>
+            <ul id="kick-last-feedback" class="log-subfeed" role="list">
+              <li class="log-empty">-</li>
+            </ul>
+          </div>
+          <div class="log-list">
+            <div class="log-toolbar">
+              <div class="k">Canli Olay Akisi</div>
+              <div class="log-toolbar-meta" id="log-limit-info">Yukleniyor...</div>
+              <div class="log-actions">
+                <button class="btn btn-secondary" id="log-pause-btn" type="button">Duraklat</button>
+                <button class="btn btn-secondary" id="log-clear-btn" type="button">Gorunumu Temizle</button>
+                <button class="btn btn-secondary" id="log-copy-btn" type="button">Kopyala</button>
+              </div>
+            </div>
+            <div class="log-filter-row" id="log-filter-row">
+              <button class="btn btn-secondary log-filter-btn btn-toggle-active" type="button" data-log-filter="all">Tum</button>
+              <button class="btn btn-secondary log-filter-btn" type="button" data-log-filter="chat">Chat</button>
+              <button class="btn btn-secondary log-filter-btn" type="button" data-log-filter="feedback">Geri Donus</button>
+              <button class="btn btn-secondary log-filter-btn" type="button" data-log-filter="panel">Panel</button>
+              <button class="btn btn-secondary log-filter-btn" type="button" data-log-filter="system">Sistem</button>
+            </div>
+            <ul id="live-event-feed" class="log-feed" role="log" aria-live="polite" aria-relevant="additions text" aria-atomic="false">
+              <li class="log-empty">-</li>
+            </ul>
+            <div class="btn-note" id="log-feed-note">Akis aktif.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<script>
+  const API = '/api';
+  const bc = new BroadcastChannel('faketruck');
+
+  let selectedDest = null;
+  let selectedPickup = null;
+  let fareAmount = '';
+  let showFare = false;
+  let cargoText = '';
+  let showCargo = false;
+  const OFFER_TEXT_MAX_LENGTH = 240;
+  let customOfferDraftText = '';
+  const overlayVisibility = { road: true, location: true, map: false };
+  let overlayMode = 'normal';
+  let overlayRequestPending = false;
+  let geocodeTimer = null;
+  let pickupGeocodeTimer = null;
+  let liveInterval = null;
+  let kickEventSource = null;
+  const OVERLAY_CONTROL_BUTTON_IDS = [
+    'road-overlay-show-btn',
+    'road-overlay-hide-btn',
+    'location-overlay-show-btn',
+    'location-overlay-hide-btn',
+    'map-overlay-show-btn',
+    'map-overlay-hide-btn',
+    'overlay-mode-normal-btn',
+    'overlay-mode-offer-btn',
+    'overlay-mode-pickup-btn'
+  ];
+  const liveEventFeed = [];
+  const liveEventSeenIds = new Set();
+  const LIVE_EVENT_FEED_MAX = 1000;
+  const LIVE_EVENT_HISTORY_FETCH_LIMIT = 500;
+  const LOG_FILTER_SET = new Set(['all', 'chat', 'feedback', 'panel', 'system']);
+  let liveFeedPaused = false;
+  let liveFeedFilter = 'all';
+  let liveFeedHistoryTotal = 0;
+  let liveFeedHistoryMax = LIVE_EVENT_FEED_MAX;
+  let lastSseRetryLogAt = 0;
+  const geocodeState = {
+    'results-list': { items: [], activeIndex: -1, inputId: 'addr-input', requestId: 0 },
+    'pickup-results-list': { items: [], activeIndex: -1, inputId: 'pickup-input', requestId: 0 }
+  };
+
+  function setButtonLoading(buttonId, isLoading, loadingText = 'ISLENIYOR') {
+    const button = document.getElementById(buttonId);
+    if (!button) return;
+    if (isLoading) {
+      if (!button.dataset.originalText) {
+        button.dataset.originalText = button.innerHTML;
+      }
+      button.innerHTML = loadingText;
+      button.classList.add('is-loading');
+      button.disabled = true;
+      return;
+    }
+    button.classList.remove('is-loading');
+    button.disabled = false;
+    if (button.dataset.originalText) {
+      button.innerHTML = button.dataset.originalText;
+    }
+  }
+
+  function escapeHtml(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function setInlineStatus(section, message, type = '') {
+    const node = document.getElementById(`${section}-status`);
+    if (!node) return;
+    node.textContent = message;
+    node.className = `inline-status${type ? ` ${type}` : ''}`;
+  }
+
+  function extractErrorMessage(error, fallback = 'Bilinmeyen hata') {
+    if (!error) return fallback;
+    if (typeof error === 'string' && error.trim()) return error.trim();
+    if (error && typeof error.message === 'string' && error.message.trim()) return error.message.trim();
+    return fallback;
+  }
+
+  function toFiniteLocation(value) {
+    const lat = Number(value && value.latitude);
+    const lon = Number(value && value.longitude);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+    return { lat, lon };
+  }
+
+  function updateGpsUi(state, message, locationText = '') {
+    const dot = document.getElementById('gps-dot');
+    const statusText = document.getElementById('gps-status-text');
+    const locDisplay = document.getElementById('loc-display');
+    if (!dot || !statusText || !locDisplay) return;
+
+    if (state === 'ok') {
+      dot.className = 'dot dot-green';
+    } else if (state === 'err') {
+      dot.className = 'dot dot-red';
+    } else {
+      dot.className = 'dot dot-yellow';
+    }
+    statusText.textContent = message;
+    locDisplay.textContent = locationText;
+  }
+
+  function getStoredApiKey() {
+    return String(localStorage.getItem('rtirl_key') || '').trim();
+  }
+
+  function getCurrentApiKeyInput() {
+    const input = document.getElementById('rtirl-key');
+    return input ? String(input.value || '').trim() : '';
+  }
+
+  function setApiButtonsBusy(isBusy, activeButtonId = '', loadingText = 'ISLENIYOR') {
+    const ids = ['key-save-btn', 'key-test-btn'];
+    if (!isBusy) {
+      ids.forEach((id) => {
+        const btn = document.getElementById(id);
+        if (!btn) return;
+        if (btn.classList.contains('is-loading')) {
+          setButtonLoading(id, false);
+        } else {
+          btn.disabled = false;
+        }
+      });
+      return;
+    }
+
+    ids.forEach((id) => {
+      if (id === activeButtonId) return;
+      const btn = document.getElementById(id);
+      if (!btn) return;
+      btn.disabled = true;
+    });
+    if (activeButtonId) {
+      setButtonLoading(activeButtonId, true, loadingText);
+    }
+  }
+
+  function markApiKeyNeedsRetest(message = 'Key degisti. Test etmeniz onerilir.') {
+    const key = getCurrentApiKeyInput();
+    if (!key) {
+      updateGpsUi('idle', 'GPS durumu bilinmiyor', '');
+      setInlineStatus('api', 'API key girilmedi.', '');
+      return;
+    }
+    updateGpsUi('idle', 'Test bekleniyor', '');
+    setInlineStatus('api', message, '');
+  }
+
+  async function fetchLocationWithKey(pullKey) {
+    const payload = {};
+    const safeKey = String(pullKey || '').trim();
+    if (safeKey) payload.pullKey = safeKey;
+
+    const response = await fetch(`${API}/location`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      let message = `HTTP ${response.status}`;
+      try {
+        const data = await response.json();
+        if (data && data.error) message = data.error;
+      } catch {
+        // Keep fallback.
+      }
+      throw new Error(message);
+    }
+
+    return response.json();
+  }
+
+  function formatIsoDateTime(iso) {
+    if (!iso) return '-';
+    const date = new Date(iso);
+    if (Number.isNaN(date.getTime())) return '-';
+    return date.toLocaleString('tr-TR');
+  }
+
+  function setKickStatusBadge(text, tone = 'offline') {
+    const statusEl = document.getElementById('kick-live-status');
+    if (!statusEl) return;
+    statusEl.textContent = text;
+    statusEl.className = `status-pill ${tone}`;
+  }
+
+  function renderKickFeedbackLines(lines) {
+    const feedbackEl = document.getElementById('kick-last-feedback');
+    if (!feedbackEl) return;
+    feedbackEl.innerHTML = lines.length
+      ? lines.map((line) => `<li>${escapeHtml(line)}</li>`).join('')
+      : '<li class="log-empty">-</li>';
+  }
+
+  function setKickLiveStatus(data) {
+    const cmdEl = document.getElementById('kick-last-command');
+    const userEl = document.getElementById('kick-last-user');
+    const atEl = document.getElementById('kick-last-at');
+
+    if (!cmdEl || !userEl || !atEl) return;
+
+    if (!data || data.enabled === false) {
+      setKickStatusBadge('Kick kapali', 'disabled');
+      cmdEl.textContent = '-';
+      userEl.textContent = '-';
+      atEl.textContent = '-';
+      renderKickFeedbackLines([]);
+      return;
+    }
+
+    const runtime = data.runtime || {};
+    const feedback = runtime.last_feedback || {};
+    const lines = Array.isArray(feedback.lines) ? feedback.lines : [];
+    const commandText = runtime.last_command_text || '-';
+    const userText = runtime.last_command_user ? ('@' + runtime.last_command_user) : '-';
+    const statusText = data.connection && data.connection.connected ? 'Bagli' : 'Baglanti yok';
+
+    setKickStatusBadge(statusText, data.connection && data.connection.connected ? 'connected' : 'offline');
+    cmdEl.textContent = commandText;
+    userEl.textContent = userText;
+    atEl.textContent = formatIsoDateTime(runtime.last_command_at || feedback.at);
+    renderKickFeedbackLines(lines);
+  }
+
+  function normalizeLiveLogType(value) {
+    const normalized = String(value || '').trim().toLowerCase();
+    return LOG_FILTER_SET.has(normalized) && normalized !== 'all' ? normalized : 'system';
+  }
+
+  function logTypeLabel(type) {
+    if (type === 'chat') return 'Chat';
+    if (type === 'feedback') return 'Geri Donus';
+    if (type === 'panel') return 'Panel';
+    return 'Sistem';
+  }
+
+  function updateLogLimitInfo() {
+    const node = document.getElementById('log-limit-info');
+    if (!node) return;
+    const total = liveEventFeed.length;
+    const shown = liveFeedFilter === 'all'
+      ? total
+      : liveEventFeed.filter((item) => item.type === liveFeedFilter).length;
+    node.textContent = `Gosterilen: ${shown}/${total} | Gecmis: ${liveFeedHistoryTotal}/${liveFeedHistoryMax}`;
+  }
+
+  function updateLogFeedNote(customMessage = '') {
+    const note = document.getElementById('log-feed-note');
+    if (!note) return;
+    if (customMessage) {
+      note.textContent = customMessage;
+      return;
+    }
+    if (liveFeedPaused) {
+      note.textContent = 'Akis duraklatildi. Olaylar arka planda birikiyor.';
+      return;
+    }
+    if (liveFeedFilter === 'all') {
+      note.textContent = 'Akis aktif.';
+      return;
+    }
+    note.textContent = `Akis aktif. Filtre: ${logTypeLabel(liveFeedFilter)}.`;
+  }
+
+  function getVisibleLiveEvents() {
+    if (liveFeedFilter === 'all') return liveEventFeed;
+    return liveEventFeed.filter((item) => item.type === liveFeedFilter);
+  }
+
+  function syncLogFilterButtons() {
+    const buttons = Array.from(document.querySelectorAll('[data-log-filter]'));
+    buttons.forEach((button) => {
+      button.classList.toggle('btn-toggle-active', button.dataset.logFilter === liveFeedFilter);
+    });
+  }
+
+  function renderLiveEventFeed() {
+    const list = document.getElementById('live-event-feed');
+    if (!list) return;
+    const visible = getVisibleLiveEvents();
+    list.innerHTML = visible.length
+      ? visible.map((item) => {
+        const kind = escapeHtml(logTypeLabel(item.type));
+        const kindClass = escapeHtml(item.type);
+        const stamp = escapeHtml(formatIsoDateTime(item.at));
+        const text = escapeHtml(item.text);
+        return `<li><span class="log-kind ${kindClass}">${kind}</span>${stamp} - ${text}</li>`;
+      }).join('')
+      : '<li class="log-empty">Secili filtrede kayit yok.</li>';
+    updateLogLimitInfo();
+    updateLogFeedNote();
+  }
+
+  function appendLiveEventEntry(entry, shouldRender = true) {
+    if (!entry || typeof entry !== 'object') return false;
+    const normalized = {
+      id: entry.id != null ? String(entry.id) : '',
+      at: entry.at || new Date().toISOString(),
+      type: normalizeLiveLogType(entry.type),
+      text: String(entry.text || '').trim()
+    };
+    if (!normalized.text) return false;
+    if (normalized.id && liveEventSeenIds.has(normalized.id)) return false;
+    if (normalized.id) {
+      liveEventSeenIds.add(normalized.id);
+    }
+    liveEventFeed.unshift(normalized);
+    while (liveEventFeed.length > LIVE_EVENT_FEED_MAX) {
+      const removed = liveEventFeed.pop();
+      if (removed && removed.id) {
+        liveEventSeenIds.delete(removed.id);
+      }
+    }
+    if (shouldRender) {
+      if (liveFeedPaused) {
+        updateLogLimitInfo();
+        updateLogFeedNote();
+      } else {
+        renderLiveEventFeed();
+      }
+    }
+    return true;
+  }
+
+  function pushLiveEvent(textOrEntry, at = null, type = 'system', eventId = null) {
+    if (textOrEntry && typeof textOrEntry === 'object') {
+      return appendLiveEventEntry(textOrEntry, true);
+    }
+    return appendLiveEventEntry({
+      text: textOrEntry,
+      at: at || new Date().toISOString(),
+      type,
+      id: eventId
+    }, true);
+  }
+
+  function clearLiveEventFeedView() {
+    liveEventFeed.length = 0;
+    liveEventSeenIds.clear();
+    renderLiveEventFeed();
+  }
+
+  async function copyTextToClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+    const helper = document.createElement('textarea');
+    helper.value = text;
+    helper.setAttribute('readonly', '');
+    helper.style.position = 'fixed';
+    helper.style.left = '-9999px';
+    document.body.appendChild(helper);
+    helper.select();
+    document.execCommand('copy');
+    document.body.removeChild(helper);
+  }
+
+  async function copyVisibleLiveEvents() {
+    const visible = getVisibleLiveEvents();
+    if (!visible.length) {
+      toast('Kopyalanacak log kaydi yok');
+      return;
+    }
+    const lines = visible.map((item) => `${formatIsoDateTime(item.at)} [${logTypeLabel(item.type)}] ${item.text}`);
+    try {
+      await copyTextToClipboard(lines.join('\n'));
+      toast('Log kayitlari panoya kopyalandi');
+    } catch {
+      toast('Kopyalama basarisiz');
+    }
+  }
+
+  function buildLiveEventEntry(eventName, data) {
+    const event = String(eventName || '').trim();
+    if (!event || event === 'heartbeat') return null;
+    const at = data && data.at ? data.at : new Date().toISOString();
+    const id = data && data.id != null ? data.id : null;
+
+    if (event === 'connected') {
+      return { id, at, type: 'system', text: 'Canli olay akisina baglandi.' };
+    }
+
+    if (event === 'kick_command') {
+      const who = data && data.username ? `@${data.username}` : 'bilinmeyen';
+      const status = data && data.status ? data.status : 'unknown';
+      const cmd = data && data.content ? ` | ${data.content}` : '';
+      return { id, at, type: 'chat', text: `[CHAT][${status}] ${who}${cmd}` };
+    }
+
+    if (event === 'kick_feedback') {
+      const feedbackLines = data && data.feedback && Array.isArray(data.feedback.lines)
+        ? data.feedback.lines.join(' | ')
+        : '-';
+      return { id, at, type: 'feedback', text: `[GERI DONUS] ${feedbackLines}` };
+    }
+
+    if (event === 'state_patch') {
+      const changed = data && Array.isArray(data.changed_keys) ? data.changed_keys.join(', ') : '-';
+      const bindingKeys = data && Array.isArray(data.command_binding_keys) && data.command_binding_keys.length
+        ? ` | komutlar: ${data.command_binding_keys.join(', ')}`
+        : '';
+      return { id, at, type: 'panel', text: `[PANEL] Degisen alanlar: ${changed}${bindingKeys}` };
+    }
+
+    if (event === 'kick_status') {
+      return { id, at, type: 'system', text: String(data && data.message || 'Kick durum guncellemesi') };
+    }
+
+    return {
+      id,
+      at,
+      type: 'system',
+      text: String(data && (data.message || data.type || event) || event)
+    };
+  }
+
+  async function loadLiveEventHistory() {
+    try {
+      const response = await fetch(`${API}/events/history?limit=${LIVE_EVENT_HISTORY_FETCH_LIMIT}`);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.json();
+      const items = Array.isArray(data.items) ? data.items : [];
+      liveFeedHistoryTotal = Number(data.total || items.length || 0);
+      liveFeedHistoryMax = Number(data.max || LIVE_EVENT_FEED_MAX);
+      items.forEach((item) => {
+        const entry = buildLiveEventEntry(item.event, item);
+        if (entry) {
+          appendLiveEventEntry(entry, false);
+        }
+      });
+      renderLiveEventFeed();
+    } catch (error) {
+      liveFeedHistoryTotal = liveEventFeed.length;
+      liveFeedHistoryMax = LIVE_EVENT_FEED_MAX;
+      renderLiveEventFeed();
+      pushLiveEvent(`Log gecmisi yuklenemedi: ${error.message}`, new Date().toISOString(), 'system');
+    }
+  }
+
+  function initLogControls() {
+    const pauseBtn = document.getElementById('log-pause-btn');
+    const clearBtn = document.getElementById('log-clear-btn');
+    const copyBtn = document.getElementById('log-copy-btn');
+    const filterButtons = Array.from(document.querySelectorAll('[data-log-filter]'));
+
+    if (pauseBtn) {
+      pauseBtn.addEventListener('click', () => {
+        liveFeedPaused = !liveFeedPaused;
+        pauseBtn.textContent = liveFeedPaused ? 'Devam Et' : 'Duraklat';
+        if (!liveFeedPaused) {
+          renderLiveEventFeed();
+        } else {
+          updateLogFeedNote();
+          updateLogLimitInfo();
+        }
+      });
+    }
+
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => {
+        clearLiveEventFeedView();
+        toast('Log gorunumu temizlendi');
+      });
+    }
+
+    if (copyBtn) {
+      copyBtn.addEventListener('click', () => {
+        copyVisibleLiveEvents();
+      });
+    }
+
+    filterButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const nextFilter = String(button.dataset.logFilter || 'all').trim().toLowerCase();
+        liveFeedFilter = LOG_FILTER_SET.has(nextFilter) ? nextFilter : 'all';
+        syncLogFilterButtons();
+        renderLiveEventFeed();
+      });
+    });
+
+    syncLogFilterButtons();
+    renderLiveEventFeed();
+  }
+
+  function readSseData(event) {
+    try {
+      return JSON.parse(event.data || '{}');
+    } catch {
+      return {};
+    }
+  }
+
+  function connectKickEvents() {
+    if (typeof EventSource === 'undefined') {
+      pushLiveEvent('Tarayici SSE desteklemiyor.', new Date().toISOString(), 'system');
+      return;
+    }
+
+    if (kickEventSource) {
+      kickEventSource.close();
+      kickEventSource = null;
+    }
+
+    kickEventSource = new EventSource('/api/events');
+    pushLiveEvent('Canli olay akisina baglaniyor...', new Date().toISOString(), 'system');
+
+    kickEventSource.addEventListener('connected', (event) => {
+      const data = readSseData(event);
+      setKickLiveStatus({
+        enabled: true,
+        connection: { connected: data.connection_status === 'connected' },
+        runtime: {
+          last_command_at: data.last_command_at || null,
+          last_command_user: data.last_command_user || null,
+          last_command_text: data.last_command_text || null,
+          last_feedback: data.last_feedback || null
+        }
+      });
+      const entry = buildLiveEventEntry('connected', data);
+      if (entry) pushLiveEvent(entry);
+    });
+
+    kickEventSource.addEventListener('kick_command', (event) => {
+      const data = readSseData(event);
+      const entry = buildLiveEventEntry('kick_command', data);
+      if (entry && pushLiveEvent(entry)) {
+        liveFeedHistoryTotal += 1;
+        updateLogLimitInfo();
+      }
+    });
+
+    kickEventSource.addEventListener('kick_feedback', (event) => {
+      const data = readSseData(event);
+      setKickLiveStatus({
+        enabled: true,
+        connection: { connected: true },
+        runtime: {
+          last_command_at: data.last_command_at || data.at,
+          last_command_user: data.last_command_user || null,
+          last_command_text: data.last_command_text || null,
+          last_feedback: data.feedback || null
+        }
+      });
+      const entry = buildLiveEventEntry('kick_feedback', data);
+      if (entry && pushLiveEvent(entry)) {
+        liveFeedHistoryTotal += 1;
+        updateLogLimitInfo();
+      }
+    });
+
+    kickEventSource.addEventListener('state_patch', (event) => {
+      const data = readSseData(event);
+      const entry = buildLiveEventEntry('state_patch', data);
+      if (entry && pushLiveEvent(entry)) {
+        liveFeedHistoryTotal += 1;
+        updateLogLimitInfo();
+      }
+    });
+
+    kickEventSource.onerror = () => {
+      setKickStatusBadge('Yeniden deneniyor', 'reconnecting');
+      const now = Date.now();
+      if (now - lastSseRetryLogAt > 10000) {
+        lastSseRetryLogAt = now;
+        pushLiveEvent('SSE baglantisi koptu, yeniden deneniyor...', new Date().toISOString(), 'system');
+      }
+    };
+  }
+
+  async function refreshKickLiveStatus() {
+    try {
+      const response = await fetch(API + '/kick/status');
+      if (!response.ok) throw new Error('status_unavailable');
+      const data = await response.json();
+      if (data && data.event_log) {
+        liveFeedHistoryTotal = Number(data.event_log.total || liveFeedHistoryTotal || 0);
+        liveFeedHistoryMax = Number(data.event_log.max || liveFeedHistoryMax || LIVE_EVENT_FEED_MAX);
+      }
+      setKickLiveStatus(data);
+      updateLogLimitInfo();
+    } catch {
+      setKickLiveStatus(null);
+    }
+  }
+
+  const COMMAND_SECTIONS = [
+    {
+      id: 'location_overlay',
+      title: 'Lokasyon Overlay',
+      commands: [
+        { id: 'overlay_location_show', label: 'Goster', valueKind: null },
+        { id: 'overlay_location_hide', label: 'Gizle', valueKind: null }
+      ]
+    },
+    {
+      id: 'map_overlay',
+      title: 'Harita Overlay',
+      commands: [
+        { id: 'overlay_map_show', label: 'Goster', valueKind: null },
+        { id: 'overlay_map_hide', label: 'Gizle', valueKind: null }
+      ]
+    },
+    {
+      id: 'road_overlay',
+      title: 'Yol Overlay',
+      commands: [
+        { id: 'overlay_road_show', label: 'Goster', valueKind: null },
+        { id: 'overlay_road_hide', label: 'Gizle', valueKind: null }
+      ]
+    },
+    {
+      id: 'overlay_modes',
+      title: 'Overlay Modlari',
+      commands: [
+        { id: 'mode_offer', label: 'Is/Yuk Bekliyor', valueKind: null },
+        { id: 'mode_custom', label: 'Ozel Bekleme Metni', valueKind: 'text' },
+        { id: 'mode_normal', label: 'Normal Gorunum', valueKind: null },
+        { id: 'mode_pickup', label: 'Pickup Gorunumu', valueKind: null }
+      ]
+    },
+    {
+      id: 'fare',
+      title: 'Ucret',
+      commands: [
+        { id: 'fare_set', label: 'Ucret Ayarla', valueKind: 'text' },
+        { id: 'fare_clear', label: 'Ucret Sil', valueKind: null },
+        { id: 'fare_show', label: 'Ucret Goster', valueKind: null },
+        { id: 'fare_hide', label: 'Ucret Gizle', valueKind: null }
+      ]
+    },
+    {
+      id: 'cargo',
+      title: 'Yuk',
+      commands: [
+        { id: 'cargo_set', label: 'Tasinan Yuk Belirle', valueKind: 'text' },
+        { id: 'cargo_clear', label: 'Tasinan Yuk Temizle', valueKind: null },
+        { id: 'cargo_show', label: 'Tasinan Yuku Goster', valueKind: null },
+        { id: 'cargo_hide', label: 'Tasinan Yuku Gizle', valueKind: null }
+      ]
+    },
+    {
+      id: 'destination',
+      title: 'Varis Konumu',
+      commands: [
+        { id: 'dest_search', label: 'Varis Konumu Arama-Secme', valueKind: 'address' },
+        { id: 'dest_coords', label: 'Varis Koordinat', valueKind: 'coords' },
+        { id: 'dest_clear', label: 'Varis Sil', valueKind: null }
+      ]
+    },
+    {
+      id: 'pickup',
+      title: 'Yuk Alinan Konum',
+      commands: [
+        { id: 'pickup_search', label: 'Yuk Alinan Konum Arama-Secme', valueKind: 'address' },
+        { id: 'pickup_coords', label: 'Yuk Alinan Konum Koordinat', valueKind: 'coords' },
+        { id: 'pickup_current', label: 'Yuk Alinan Konumu Anlik Ayarla', valueKind: null },
+        { id: 'pickup_show', label: 'Yuk Alinan Konumu Goster', valueKind: null },
+        { id: 'pickup_hide', label: 'Yuk Alinan Konumu Gizle', valueKind: null },
+        { id: 'pickup_clear', label: 'Yuk Alinan Konumu Temizle', valueKind: null }
+      ]
+    }
+  ];
+
+  const COMMAND_SECTION_TONES = [
+    { accent: '#f5c518', accentDim: 'rgba(245,197,24,.55)', bg: 'rgba(245,197,24,.045)', head: 'rgba(245,197,24,.08)', cell: 'rgba(245,197,24,.055)' },
+    { accent: '#ff9f1c', accentDim: 'rgba(255,159,28,.55)', bg: 'rgba(255,159,28,.045)', head: 'rgba(255,159,28,.08)', cell: 'rgba(255,159,28,.055)' },
+    { accent: '#38bdf8', accentDim: 'rgba(56,189,248,.55)', bg: 'rgba(56,189,248,.045)', head: 'rgba(56,189,248,.08)', cell: 'rgba(56,189,248,.055)' },
+    { accent: '#34d399', accentDim: 'rgba(52,211,153,.55)', bg: 'rgba(52,211,153,.045)', head: 'rgba(52,211,153,.08)', cell: 'rgba(52,211,153,.055)' },
+    { accent: '#a78bfa', accentDim: 'rgba(167,139,250,.55)', bg: 'rgba(167,139,250,.045)', head: 'rgba(167,139,250,.08)', cell: 'rgba(167,139,250,.055)' },
+    { accent: '#f472b6', accentDim: 'rgba(244,114,182,.55)', bg: 'rgba(244,114,182,.045)', head: 'rgba(244,114,182,.08)', cell: 'rgba(244,114,182,.055)' },
+    { accent: '#fb7185', accentDim: 'rgba(251,113,133,.55)', bg: 'rgba(251,113,133,.045)', head: 'rgba(251,113,133,.08)', cell: 'rgba(251,113,133,.055)' },
+    { accent: '#22d3ee', accentDim: 'rgba(34,211,238,.55)', bg: 'rgba(34,211,238,.045)', head: 'rgba(34,211,238,.08)', cell: 'rgba(34,211,238,.055)' }
+  ];
+
+  const DEFAULT_CHAT_COMMAND_BINDINGS = {
+    help: { prefix: '!', keyword: 'yardim' },
+    overlay_location_show: { prefix: '!', keyword: 'lokasyongoster' },
+    overlay_location_hide: { prefix: '!', keyword: 'lokasyongizle' },
+    overlay_map_show: { prefix: '!', keyword: 'mapgoster' },
+    overlay_map_hide: { prefix: '!', keyword: 'mapgizle' },
+    overlay_road_show: { prefix: '!', keyword: 'yolgoster' },
+    overlay_road_hide: { prefix: '!', keyword: 'yolgizle' },
+    mode_offer: { prefix: '!', keyword: 'bekleme' },
+    mode_custom: { prefix: '!', keyword: 'custom' },
+    mode_normal: { prefix: '!', keyword: 'yoloverlay' },
+    mode_pickup: { prefix: '!', keyword: 'yukegidiyor' },
+    fare_set: { prefix: '!', keyword: 'ucret' },
+    fare_clear: { prefix: '!', keyword: 'ucretsil' },
+    fare_show: { prefix: '!', keyword: 'ucretgoster' },
+    fare_hide: { prefix: '!', keyword: 'ucretgizle' },
+    cargo_set: { prefix: '!', keyword: 'yuk' },
+    cargo_clear: { prefix: '!', keyword: 'yuksil' },
+    cargo_show: { prefix: '!', keyword: 'yukgoster' },
+    cargo_hide: { prefix: '!', keyword: 'yukgizle' },
+    dest_search: { prefix: '!', keyword: 'variskonum' },
+    dest_coords: { prefix: '!', keyword: 'variskoordinat' },
+    dest_clear: { prefix: '!', keyword: 'variskonumsil' },
+    pickup_search: { prefix: '!', keyword: 'baslangickonum' },
+    pickup_coords: { prefix: '!', keyword: 'baslangickoordinat' },
+    pickup_current: { prefix: '!', keyword: 'baslangicanlik' },
+    pickup_show: { prefix: '!', keyword: 'baslangicgoster' },
+    pickup_hide: { prefix: '!', keyword: 'baslangicgizle' },
+    pickup_clear: { prefix: '!', keyword: 'baslangicsil' }
+  };
+
+  let commandBindings = buildDefaultCommandBindings();
+  let serverCommandBindings = cloneBindings(commandBindings);
+  let commandSearchTerm = '';
+
+  function normalizeLowerTr(value) {
+    return String(value == null ? '' : value).trim().toLocaleLowerCase('tr-TR');
+  }
+
+  function foldCommandText(value) {
+    return normalizeLowerTr(value)
+      .replace(/ç/g, 'c')
+      .replace(/ğ/g, 'g')
+      .replace(/ı/g, 'i')
+      .replace(/ö/g, 'o')
+      .replace(/ş/g, 's')
+      .replace(/ü/g, 'u')
+      .replace(/â/g, 'a')
+      .replace(/î/g, 'i')
+      .replace(/û/g, 'u');
+  }
+
+  function commandBindingKey(entry) {
+    const prefix = normalizePrefix(entry && entry.prefix, '!');
+    const keyword = normalizeKeyword(entry && entry.keyword, 'komut');
+    return `${normalizeLowerTr(prefix)}::${foldCommandText(keyword)}`;
+  }
+
+  function normalizeOverlayMode(value) {
+    const mode = String(value || '').trim().toLowerCase();
+    if (mode === 'offer' || mode === 'pickup') return mode;
+    return 'normal';
+  }
+
+  function overlayModeLabel(mode) {
+    if (mode === 'offer') return 'Bekleme';
+    if (mode === 'pickup') return 'Yuke gidiyor';
+    return 'Normal';
+  }
+
+  function normalizePrefix(value, fallback = '!') {
+    const normalized = String(value == null ? '' : value).trim();
+    if (!normalized) return fallback;
+    if (normalized.startsWith('!')) return normalized;
+    return `!${normalized}`;
+  }
+
+  function normalizeKeyword(value, fallback = 'komut') {
+    const normalized = String(value == null ? '' : value).trim().toLocaleLowerCase('tr-TR').replace(/^!+/, '');
+    if (!normalized) return fallback;
+    return normalized.split(/\s+/)[0];
+  }
+
+  function buildDefaultCommandBindings() {
+    const next = {};
+    Object.entries(DEFAULT_CHAT_COMMAND_BINDINGS).forEach(([id, entry]) => {
+      next[id] = {
+        prefix: normalizePrefix(entry.prefix, '!'),
+        keyword: normalizeKeyword(entry.keyword, id)
+      };
+    });
+    return next;
+  }
+
+  function cloneBindings(value) {
+    const next = {};
+    Object.entries(value || {}).forEach(([id, entry]) => {
+      next[id] = {
+        prefix: normalizePrefix(entry.prefix, '!'),
+        keyword: normalizeKeyword(entry.keyword, id)
+      };
+    });
+    return next;
+  }
+
+  function mergeBindings(input) {
+    const base = buildDefaultCommandBindings();
+    const source = input && typeof input === 'object' ? input : {};
+    Object.keys(base).forEach((id) => {
+      const incoming = source[id] && typeof source[id] === 'object' ? source[id] : null;
+      if (!incoming) return;
+      base[id] = {
+        prefix: normalizePrefix(incoming.prefix, base[id].prefix),
+        keyword: normalizeKeyword(incoming.keyword, base[id].keyword)
+      };
+    });
+    return base;
+  }
+
+  function usagePlaceholder(valueKind) {
+    if (valueKind === 'text') return '<metin>';
+    if (valueKind === 'address') return '<query>';
+    if (valueKind === 'coords') return '<lat,lon>';
+    return '';
+  }
+
+  function stripOfferEmoji(value) {
+    return String(value || '')
+      .replace(/[\u200D\uFE0E\uFE0F]/g, '')
+      .replace(/[\u{1F300}-\u{1FAFF}]/gu, '')
+      .replace(/[\u{2600}-\u{27BF}]/gu, '');
+  }
+
+  function normalizeCustomOfferText(value) {
+    const raw = typeof value === 'string'
+      ? value
+      : value == null
+        ? ''
+        : String(value);
+    const cleaned = stripOfferEmoji(raw).replace(/\s+/g, ' ').trim().slice(0, OFFER_TEXT_MAX_LENGTH);
+    return cleaned;
+  }
+
+  function updateCustomOfferUxState() {
+    const raw = String(customOfferDraftText || '');
+    const noEmoji = stripOfferEmoji(raw);
+    const compact = noEmoji.replace(/\s+/g, ' ').trim();
+    const cleaned = compact.slice(0, OFFER_TEXT_MAX_LENGTH);
+    const remaining = Math.max(0, OFFER_TEXT_MAX_LENGTH - cleaned.length);
+    const hadEmoji = noEmoji !== raw;
+    const hadSpacingChange = noEmoji.trim() !== compact || /^\s+|\s+$/.test(noEmoji);
+    const hadTrim = compact.length > OFFER_TEXT_MAX_LENGTH;
+
+    const countIds = ['overlay-custom-offer-count', 'overlay-custom-offer-quick-count'];
+    countIds.forEach((id) => {
+      const node = document.getElementById(id);
+      if (!node) return;
+      node.textContent = `${cleaned.length}/${OFFER_TEXT_MAX_LENGTH} (kalan ${remaining})`;
+      node.classList.remove('warn', 'danger');
+      if (remaining <= 10) {
+        node.classList.add('danger');
+      } else if (remaining <= 30) {
+        node.classList.add('warn');
+      }
+    });
+
+    let hint = 'Hazir: uygula ile offer moda gecirir.';
+    if (!cleaned) {
+      hint = 'Metin bos olamaz.';
+    } else {
+      const notes = [];
+      if (hadEmoji) notes.push('emoji temizlenir');
+      if (hadSpacingChange) notes.push('bosluklar sadeleşir');
+      if (hadTrim) notes.push(`${OFFER_TEXT_MAX_LENGTH} karaktere kisaltilir`);
+      if (notes.length > 0) {
+        hint = `Not: ${notes.join(', ')}.`;
+      }
+    }
+
+    const hintIds = ['overlay-custom-offer-hint', 'overlay-custom-offer-quick-hint'];
+    hintIds.forEach((id) => {
+      const node = document.getElementById(id);
+      if (!node) return;
+      node.textContent = hint;
+    });
+
+    const applyIds = ['overlay-custom-offer-apply-btn', 'overlay-custom-offer-quick-apply-btn'];
+    applyIds.forEach((id) => {
+      const btn = document.getElementById(id);
+      if (!btn) return;
+      if (!btn.classList.contains('is-loading')) {
+        btn.disabled = !cleaned;
+      }
+    });
+  }
+
+  function syncCustomOfferInputFields(force = true) {
+    const inputIds = ['overlay-custom-offer-input', 'overlay-custom-offer-quick-input'];
+    inputIds.forEach((inputId) => {
+      const input = document.getElementById(inputId);
+      if (!input) return;
+      if (force || document.activeElement !== input) {
+        input.value = customOfferDraftText;
+      }
+    });
+    updateCustomOfferUxState();
+  }
+
+  function bindCustomOfferInput(input) {
+    if (!input || input.dataset.offerBound === '1') return;
+    input.dataset.offerBound = '1';
+    input.addEventListener('input', () => {
+      customOfferDraftText = input.value;
+      syncCustomOfferInputFields(false);
+    });
+    input.addEventListener('blur', () => {
+      customOfferDraftText = normalizeCustomOfferText(customOfferDraftText);
+      syncCustomOfferInputFields(false);
+    });
+  }
+
+  async function applyCustomOfferDraft(buttonEl = null) {
+    const cleaned = normalizeCustomOfferText(customOfferDraftText);
+    if (!cleaned) {
+      toast('Custom metin bos olamaz');
+      updateCustomOfferUxState();
+      return;
+    }
+    const buttonId = buttonEl && buttonEl.id ? buttonEl.id : '';
+    if (buttonId) {
+      setButtonLoading(buttonId, true, 'UYGULANIYOR');
+    }
+    setInlineStatus('overlay', 'Custom metin uygulanıyor...', '');
+    try {
+      await postState({
+        overlay_mode: 'offer',
+        offer_custom_text: cleaned
+      });
+      customOfferDraftText = '';
+      await hydrateStateFromServer();
+      setInlineStatus('overlay', 'Custom metin uygulandi ve overlay offer moda gecti.', 'ok');
+      toast('Custom metin uygulandi ve overlay offer moda gecti');
+    } catch (error) {
+      setInlineStatus('overlay', `Custom metin uygulanamadi: ${error.message}`, 'err');
+      toast(`Custom metin uygulanamadi: ${error.message}`);
+    } finally {
+      if (buttonId) {
+        setButtonLoading(buttonId, false);
+      }
+      updateCustomOfferUxState();
+    }
+  }
+
+  function composeUsage(prefix, keyword, valueKind) {
+    const safePrefix = normalizePrefix(prefix, '!');
+    const safeKeyword = normalizeKeyword(keyword, 'komut');
+    const base = safePrefix.length === 1 ? `${safePrefix}${safeKeyword}` : `${safePrefix} ${safeKeyword}`;
+    const placeholder = usagePlaceholder(valueKind);
+    return placeholder ? `${base} ${placeholder}` : base;
+  }
+
+  async function postState(payload) {
+    const response = await fetch(API + '/state', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      let message = `HTTP ${response.status}`;
+      try {
+        const data = await response.json();
+        if (data && data.error) message = data.error;
+      } catch {
+        // Keep fallback message.
+      }
+      throw new Error(message);
+    }
+  }
+
+  function buildLocationPayload(item) {
+    return {
+      lat: parseFloat(item.lat),
+      lon: parseFloat(item.lon),
+      short_label: item.short_label || item.display_name,
+      label: item.short_label || item.display_name,
+      medium_label: item.medium_label || item.short_label || item.display_name,
+      full_label: item.full_label || item.display_name
+    };
+  }
+
+  function setButtonPair(showId, hideId, isVisible) {
+    const showBtn = document.getElementById(showId);
+    const hideBtn = document.getElementById(hideId);
+    if (!showBtn || !hideBtn) return;
+    showBtn.classList.toggle('btn-toggle-active', isVisible);
+    hideBtn.classList.toggle('btn-toggle-active', !isVisible);
+    showBtn.setAttribute('aria-pressed', isVisible ? 'true' : 'false');
+    hideBtn.setAttribute('aria-pressed', !isVisible ? 'true' : 'false');
+  }
+
+  function setTripleButtons(activeId, ids) {
+    ids.forEach((id) => {
+      const btn = document.getElementById(id);
+      if (!btn) return;
+      btn.classList.toggle('btn-toggle-active', id === activeId);
+      btn.setAttribute('aria-pressed', id === activeId ? 'true' : 'false');
+    });
+  }
+
+  function setOverlayStateBadge(nodeId, text, type = '') {
+    const node = document.getElementById(nodeId);
+    if (!node) return;
+    node.textContent = text;
+    node.className = `overlay-state-badge${type ? ` ${type}` : ''}`;
+  }
+
+  function setOverlayControlsPending(isPending, activeButtonId = '') {
+    overlayRequestPending = isPending;
+    OVERLAY_CONTROL_BUTTON_IDS.forEach((id) => {
+      const btn = document.getElementById(id);
+      if (!btn) return;
+      btn.disabled = isPending;
+      if (!isPending) {
+        btn.classList.remove('is-loading');
+      }
+    });
+    if (isPending && activeButtonId) {
+      const activeBtn = document.getElementById(activeButtonId);
+      if (activeBtn) {
+        activeBtn.classList.add('is-loading');
+      }
+    }
+  }
+
+  function syncOverlayVisibilityUI() {
+    setButtonPair('road-overlay-show-btn', 'road-overlay-hide-btn', overlayVisibility.road);
+    setButtonPair('location-overlay-show-btn', 'location-overlay-hide-btn', overlayVisibility.location);
+    setButtonPair('map-overlay-show-btn', 'map-overlay-hide-btn', overlayVisibility.map);
+    setOverlayStateBadge('road-overlay-state', overlayVisibility.road ? 'Acik' : 'Kapali', overlayVisibility.road ? 'on' : 'off');
+    setOverlayStateBadge('location-overlay-state', overlayVisibility.location ? 'Acik' : 'Kapali', overlayVisibility.location ? 'on' : 'off');
+    setOverlayStateBadge('map-overlay-state', overlayVisibility.map ? 'Acik' : 'Kapali', overlayVisibility.map ? 'on' : 'off');
+  }
+
+  function syncOverlayModeUI() {
+    const ids = ['overlay-mode-normal-btn', 'overlay-mode-offer-btn', 'overlay-mode-pickup-btn'];
+    const activeId = overlayMode === 'offer'
+      ? 'overlay-mode-offer-btn'
+      : overlayMode === 'pickup'
+        ? 'overlay-mode-pickup-btn'
+        : 'overlay-mode-normal-btn';
+    setTripleButtons(activeId, ids);
+    setOverlayStateBadge('overlay-mode-state', `Mod: ${overlayModeLabel(overlayMode)}`, 'mode');
+  }
+
+  function syncFareUI() {
+    setButtonPair('fare-show-btn', 'fare-hide-btn', showFare);
+    const input = document.getElementById('fare-input');
+    if (input && document.activeElement !== input) {
+      input.value = fareAmount;
+    }
+  }
+
+  function syncCargoUI() {
+    setButtonPair('cargo-show-btn', 'cargo-hide-btn', showCargo);
+    const input = document.getElementById('cargo-input');
+    if (input && document.activeElement !== input) {
+      input.value = cargoText;
+    }
+  }
+
+  function renderCommandSections() {
+    const root = document.getElementById('command-sections');
+    root.innerHTML = '';
+
+    COMMAND_SECTIONS.forEach((section, sectionIndex) => {
+      const tone = COMMAND_SECTION_TONES[sectionIndex % COMMAND_SECTION_TONES.length];
+      const card = document.createElement('div');
+      card.className = 'command-section';
+      card.setAttribute('data-command-section', section.id);
+      card.style.setProperty('--section-accent', tone.accent);
+      card.style.setProperty('--section-accent-dim', tone.accentDim);
+      card.style.setProperty('--section-bg', tone.bg);
+      card.style.setProperty('--section-head-bg', tone.head);
+      card.style.setProperty('--section-cell-bg', tone.cell);
+      card.innerHTML = `
+        <div class="command-section-head">
+          <div class="command-section-title">${section.title}</div>
+          <div class="command-section-meta" data-section-meta="${section.id}">0 degisiklik</div>
+        </div>
+        <div class="command-table" id="grid-${section.id}">
+          <div class="command-header">
+            <div>Komut</div>
+            <div>Prefix</div>
+            <div>Anahtar</div>
+            <div>Kullanim</div>
+          </div>
+        </div>
+        ${section.id === 'overlay_modes' ? `
+          <div class="command-custom-box">
+            <input type="text" id="overlay-custom-offer-input" placeholder="Custom bekleme metni yazin" />
+            <button class="btn btn-primary" type="button" id="overlay-custom-offer-apply-btn">METNI UYGULA + OFFERA GEC</button>
+            <div class="custom-offer-meta">
+              <span class="custom-offer-count" id="overlay-custom-offer-count">0/240</span>
+              <span class="custom-offer-hint" id="overlay-custom-offer-hint">Emoji temizlenir, bosluklar sadeleşir.</span>
+            </div>
+          </div>
+        ` : ''}
+        <div class="command-actions">
+          <button class="btn btn-secondary" data-save-section="${section.id}">BU BOLUMU KAYDET</button>
+        </div>
+      `;
+
+      const grid = card.querySelector(`#grid-${section.id}`);
+      section.commands.forEach((cmd) => {
+        const row = document.createElement('div');
+        row.className = 'command-row';
+        row.setAttribute('data-cmd-row', cmd.id);
+        row.setAttribute('data-cmd-label', foldCommandText(`${section.title} ${cmd.label}`));
+        row.setAttribute('data-section-id', section.id);
+        row.innerHTML = `
+          <div class="command-cell cmd-name">${cmd.label}</div>
+          <div class="command-cell">
+            <input type="text" data-cmd-id="${cmd.id}" data-cmd-field="prefix" placeholder="!" />
+          </div>
+          <div class="command-cell">
+            <input type="text" data-cmd-id="${cmd.id}" data-cmd-field="keyword" placeholder="komut" />
+          </div>
+          <div class="command-cell">
+            <div class="command-usage" data-cmd-usage="${cmd.id}">-</div>
+          </div>
+        `;
+        grid.appendChild(row);
+      });
+
+      root.appendChild(card);
+    });
+
+    root.querySelectorAll('button[data-save-section]').forEach((button) => {
+      button.addEventListener('click', async () => {
+        const sectionId = button.getAttribute('data-save-section');
+        await saveCommandSection(sectionId);
+      });
+    });
+
+    root.querySelectorAll('input[data-cmd-id]').forEach((input) => {
+      input.addEventListener('input', () => {
+        const id = input.getAttribute('data-cmd-id');
+        const field = input.getAttribute('data-cmd-field');
+        if (!commandBindings[id]) return;
+        if (field === 'prefix') {
+          commandBindings[id].prefix = input.value;
+        } else {
+          commandBindings[id].keyword = input.value;
+        }
+        refreshCommandUiState();
+      });
+
+      input.addEventListener('blur', () => {
+        const id = input.getAttribute('data-cmd-id');
+        const field = input.getAttribute('data-cmd-field');
+        if (!commandBindings[id]) return;
+        if (field === 'prefix') {
+          commandBindings[id].prefix = normalizePrefix(commandBindings[id].prefix, '!');
+        } else {
+          commandBindings[id].keyword = normalizeKeyword(commandBindings[id].keyword, id);
+        }
+        syncCommandInputsFromState(false);
+        refreshCommandUiState();
+      });
+    });
+
+    const customInput = document.getElementById('overlay-custom-offer-input');
+    bindCustomOfferInput(customInput);
+
+    const customApplyBtn = document.getElementById('overlay-custom-offer-apply-btn');
+    if (customApplyBtn) {
+      customApplyBtn.addEventListener('click', () => applyCustomOfferDraft(customApplyBtn));
+    }
+  }
+
+  function getConflictCommandIds() {
+    const byKey = new Map();
+    const conflicts = new Set();
+
+    Object.entries(commandBindings).forEach(([id, entry]) => {
+      const key = commandBindingKey(entry);
+      if (!byKey.has(key)) {
+        byKey.set(key, id);
+        return;
+      }
+      conflicts.add(id);
+      conflicts.add(byKey.get(key));
+    });
+
+    return conflicts;
+  }
+
+  function isCommandChanged(commandId) {
+    const current = commandBindings[commandId] || {};
+    const saved = serverCommandBindings[commandId] || {};
+    return (
+      normalizePrefix(current.prefix, '!') !== normalizePrefix(saved.prefix, '!')
+      || normalizeKeyword(current.keyword, commandId) !== normalizeKeyword(saved.keyword, commandId)
+    );
+  }
+
+  function getSectionChangedCount(sectionId) {
+    const section = COMMAND_SECTIONS.find((item) => item.id === sectionId);
+    if (!section) return 0;
+    return section.commands.filter((cmd) => isCommandChanged(cmd.id)).length;
+  }
+
+  function syncCommandSectionMeta() {
+    COMMAND_SECTIONS.forEach((section) => {
+      const meta = document.querySelector(`[data-section-meta="${section.id}"]`);
+      if (!meta) return;
+      const changedCount = getSectionChangedCount(section.id);
+      if (changedCount > 0) {
+        meta.textContent = `${changedCount} degisiklik`;
+        meta.classList.add('changed');
+      } else {
+        meta.textContent = 'Kayitli';
+        meta.classList.remove('changed');
+      }
+    });
+  }
+
+  function syncCommandRows() {
+    const conflicts = getConflictCommandIds();
+
+    COMMAND_SECTIONS.forEach((section) => {
+      section.commands.forEach((cmd) => {
+        const row = document.querySelector(`[data-cmd-row="${cmd.id}"]`);
+        const usage = document.querySelector(`[data-cmd-usage="${cmd.id}"]`);
+        const current = commandBindings[cmd.id] || { prefix: '!', keyword: cmd.id };
+        if (usage) {
+          usage.textContent = composeUsage(current.prefix, current.keyword, cmd.valueKind);
+        }
+        if (!row) return;
+        row.classList.toggle('changed', isCommandChanged(cmd.id));
+        row.classList.toggle('conflict', conflicts.has(cmd.id));
+      });
+    });
+  }
+
+  function applyCommandSearchFilter() {
+    const needle = foldCommandText(commandSearchTerm);
+    const hasNeedle = Boolean(needle);
+
+    COMMAND_SECTIONS.forEach((section) => {
+      const sectionNode = document.querySelector(`[data-command-section="${section.id}"]`);
+      let visibleInSection = 0;
+
+      section.commands.forEach((cmd) => {
+        const row = document.querySelector(`[data-cmd-row="${cmd.id}"]`);
+        if (!row) return;
+        const entry = commandBindings[cmd.id] || {};
+        const hay = foldCommandText(`${section.title} ${cmd.label} ${cmd.id} ${entry.keyword || ''}`);
+        const visible = !hasNeedle || hay.includes(needle);
+        row.style.display = visible ? '' : 'none';
+        if (visible) visibleInSection += 1;
+      });
+
+      if (sectionNode) {
+        sectionNode.style.display = visibleInSection > 0 ? '' : 'none';
+      }
+    });
+  }
+
+  function renderCommandSummary() {
+    const total = COMMAND_SECTIONS.reduce((sum, section) => sum + section.commands.length, 0);
+    const changed = COMMAND_SECTIONS
+      .flatMap((section) => section.commands)
+      .filter((cmd) => isCommandChanged(cmd.id)).length;
+    const conflicts = getConflictCommandIds().size;
+    const summary = document.getElementById('command-summary');
+    if (summary) {
+      const base = `Toplam komut: ${total} | Degisen: ${changed}`;
+      summary.textContent = conflicts > 0
+        ? `${base} | Cakisma: ${conflicts} (kaydetme kapanir)`
+        : `${base} | Cakisma yok`;
+    }
+
+    const saveAllBtn = document.getElementById('commands-save-all-btn');
+    if (saveAllBtn) saveAllBtn.disabled = conflicts > 0;
+    document.querySelectorAll('button[data-save-section]').forEach((button) => {
+      button.disabled = conflicts > 0;
+    });
+  }
+
+  function refreshCommandUiState() {
+    syncCommandRows();
+    syncCommandSectionMeta();
+    renderCommandSummary();
+    applyCommandSearchFilter();
+    renderCommandGuide();
+  }
+
+  function syncCommandInputsFromState(force = true) {
+    Object.entries(commandBindings).forEach(([id, value]) => {
+      const prefixInput = document.querySelector(`input[data-cmd-id="${id}"][data-cmd-field="prefix"]`);
+      const keywordInput = document.querySelector(`input[data-cmd-id="${id}"][data-cmd-field="keyword"]`);
+      if (prefixInput && (force || document.activeElement !== prefixInput)) {
+        prefixInput.value = value.prefix;
+      }
+      if (keywordInput && (force || document.activeElement !== keywordInput)) {
+        keywordInput.value = value.keyword;
+      }
+    });
+
+    const customInput = document.getElementById('overlay-custom-offer-input');
+    if (customInput && (force || document.activeElement !== customInput)) {
+      customInput.value = customOfferDraftText;
+    }
+    const quickInput = document.getElementById('overlay-custom-offer-quick-input');
+    if (quickInput && (force || document.activeElement !== quickInput)) {
+      quickInput.value = customOfferDraftText;
+    }
+  }
+
+  function renderCommandGuide() {
+    const guide = document.getElementById('command-guide');
+    const lines = [];
+
+    COMMAND_SECTIONS.forEach((section) => {
+      lines.push(`<strong>${escapeHtml(section.title)}</strong>`);
+      section.commands.forEach((cmd) => {
+        const entry = commandBindings[cmd.id];
+        if (!entry) return;
+        const usage = composeUsage(entry.prefix, entry.keyword, cmd.valueKind);
+        lines.push(`- ${escapeHtml(cmd.label)}: <code>${escapeHtml(usage)}</code>`);
+      });
+    });
+
+    guide.innerHTML = lines.join('<br>');
+  }
+
+  function initCommandSearch() {
+    const searchInput = document.getElementById('command-search-input');
+    if (!searchInput) return;
+    searchInput.addEventListener('input', () => {
+      commandSearchTerm = searchInput.value || '';
+      applyCommandSearchFilter();
+    });
+  }
+
+  function initResultListDismiss() {
+    document.addEventListener('click', (event) => {
+      const target = event.target;
+      const addrInput = document.getElementById('addr-input');
+      const pickupInput = document.getElementById('pickup-input');
+      const addrList = document.getElementById('results-list');
+      const pickupList = document.getElementById('pickup-results-list');
+
+      const insideAddr = (addrInput && addrInput.contains(target)) || (addrList && addrList.contains(target));
+      const insidePickup = (pickupInput && pickupInput.contains(target)) || (pickupList && pickupList.contains(target));
+
+      if (!insideAddr) collapseResults('results-list');
+      if (!insidePickup) collapseResults('pickup-results-list');
+    });
+  }
+
+  function collectSectionPatch(sectionId) {
+    const section = COMMAND_SECTIONS.find((item) => item.id === sectionId);
+    if (!section) return {};
+
+    const patch = {};
+    section.commands.forEach((cmd) => {
+      patch[cmd.id] = {
+        prefix: normalizePrefix(commandBindings[cmd.id].prefix, '!'),
+        keyword: normalizeKeyword(commandBindings[cmd.id].keyword, cmd.id)
+      };
+    });
+    return patch;
+  }
+
+  async function saveCommandSection(sectionId) {
+    if (getConflictCommandIds().size > 0) {
+      toast('Komut cakismasi var, once duzelt');
+      return;
+    }
+    try {
+      const patch = collectSectionPatch(sectionId);
+      await postState({ chat_command_bindings: patch });
+      await hydrateStateFromServer();
+      toast('Bolum komutlari kaydedildi');
+    } catch (error) {
+      toast(`Komutlar kaydedilemedi: ${error.message}`);
+    }
+  }
+
+  async function saveAllCommandBindings() {
+    if (getConflictCommandIds().size > 0) {
+      toast('Komut cakismasi var, once duzelt');
+      return;
+    }
+    try {
+      await postState({ chat_command_bindings: cloneBindings(commandBindings) });
+      await hydrateStateFromServer();
+      toast('Tum komutlar kaydedildi');
+    } catch (error) {
+      toast(`Komutlar kaydedilemedi: ${error.message}`);
+    }
+  }
+
+  async function resetCommandBindingsToDefaults() {
+    try {
+      await postState({ chat_command_bindings_reset: true });
+      await hydrateStateFromServer();
+      toast('Komutlar varsayilana dondu');
+    } catch (error) {
+      toast(`Komutlar sifirlanamadi: ${error.message}`);
+    }
+  }
+
+  async function hydrateStateFromServer() {
+    const response = await fetch(API + '/state');
+    const state = await response.json();
+
+    overlayVisibility.road = state.show_road_hud_overlay !== false;
+    overlayVisibility.location = state.show_location_time_overlay !== false;
+    overlayVisibility.map = Boolean(state.show_map_overlay);
+    overlayMode = normalizeOverlayMode(state.overlay_mode);
+    fareAmount = typeof state.fare_amount === 'string' ? state.fare_amount : state.fare_amount == null ? '' : String(state.fare_amount);
+    showFare = Boolean(state.show_fare);
+    cargoText = typeof state.cargo_text === 'string' ? state.cargo_text : state.cargo_text == null ? '' : String(state.cargo_text);
+    showCargo = Boolean(state.show_cargo);
+    customOfferDraftText = '';
+
+    commandBindings = mergeBindings(state.chat_command_bindings);
+    serverCommandBindings = cloneBindings(commandBindings);
+
+    syncOverlayVisibilityUI();
+    syncOverlayModeUI();
+    syncFareUI();
+    syncCargoUI();
+    setInlineStatus('fare', showFare ? 'Ucret overlayde gosteriliyor.' : 'Hazir.', showFare ? 'ok' : '');
+    setInlineStatus('cargo', showCargo ? 'Yuk overlayde gosteriliyor.' : 'Hazir.', showCargo ? 'ok' : '');
+    setInlineStatus('overlay', 'Overlay ayarlari yuklendi.', 'ok');
+    setInlineStatus('dest', state.destination ? 'Hedef secili.' : 'Hedef secili degil.', '');
+    setInlineStatus('pickup', state.pickup ? 'Pickup secili.' : 'Pickup secili degil.', '');
+    syncCommandInputsFromState();
+    refreshCommandUiState();
+    syncDataActionHints();
+
+    if (state && state.destination) {
+      selectedDest = state.destination;
+      showSelectedDest(state.destination);
+    } else {
+      hideSelectedDestUI();
+    }
+
+    if (state && state.pickup) {
+      selectedPickup = state.pickup;
+      showSelectedPickup(state.pickup);
+    } else {
+      hideSelectedPickupUI();
+    }
+  }
+
+  function initTabs() {
+    const buttons = Array.from(document.querySelectorAll('.tab-btn'));
+    const panes = Array.from(document.querySelectorAll('.tab-pane'));
+    const TAB_STORAGE_KEY = 'ft_admin_active_tab';
+
+    function activate(tabId) {
+      const hasTab = buttons.some((btn) => btn.dataset.tab === tabId);
+      const nextTab = hasTab ? tabId : 'data';
+      buttons.forEach((btn) => btn.classList.toggle('active', btn.dataset.tab === nextTab));
+      panes.forEach((pane) => pane.classList.toggle('active', pane.id === `tab-${nextTab}`));
+      try {
+        localStorage.setItem(TAB_STORAGE_KEY, nextTab);
+      } catch {
+        // Ignore storage errors.
+      }
+    }
+
+    buttons.forEach((button) => {
+      button.addEventListener('click', () => activate(button.dataset.tab));
+    });
+
+    let savedTab = '';
+    try {
+      savedTab = localStorage.getItem(TAB_STORAGE_KEY) || '';
+    } catch {
+      // Ignore storage errors.
+    }
+    activate(savedTab || 'data');
+  }
+
+  window.onload = async () => {
+    initTabs();
+    initLogControls();
+    renderCommandSections();
+    bindCustomOfferInput(document.getElementById('overlay-custom-offer-quick-input'));
+    initCommandSearch();
+    initResultListDismiss();
+    syncCommandInputsFromState();
+    refreshCommandUiState();
+    syncDataActionHints();
+
+    syncOverlayVisibilityUI();
+    syncOverlayModeUI();
+    syncFareUI();
+    syncCargoUI();
+
+    const addrInput = document.getElementById('addr-input');
+    const pickupInput = document.getElementById('pickup-input');
+    if (addrInput) {
+      addrInput.addEventListener('keydown', (event) => handleResultListKeydown(event, 'results-list'));
+      addrInput.addEventListener('focus', () => reopenResultsIfPossible('results-list'));
+    }
+    if (pickupInput) {
+      pickupInput.addEventListener('keydown', (event) => handleResultListKeydown(event, 'pickup-results-list'));
+      pickupInput.addEventListener('focus', () => reopenResultsIfPossible('pickup-results-list'));
+    }
+
+    const keyInput = document.getElementById('rtirl-key');
+    if (keyInput) {
+      keyInput.addEventListener('input', () => {
+        markApiKeyNeedsRetest('Key degisti. Kaydet veya test et.');
+      });
+    }
+
+    const key = getStoredApiKey();
+    if (keyInput) {
+      keyInput.value = key;
+    }
+    if (key) {
+      try {
+        await postState({ rtirl_key: key });
+        markApiKeyNeedsRetest('Kayitli key yuklendi. Test etmeniz onerilir.');
+      } catch {
+        setInlineStatus('api', 'Kayitli key sunucuya senkronlanamadi.', 'err');
+      }
+    } else {
+      updateGpsUi('idle', 'GPS durumu bilinmiyor', '');
+      setInlineStatus('api', 'API key girilmedi.', '');
+    }
+
+    const savedDestination = localStorage.getItem('ft_destination');
+    if (savedDestination) {
+      selectedDest = JSON.parse(savedDestination);
+      try {
+        await postState({ destination: selectedDest });
+      } catch {
+        // Ignore destination sync error on boot.
+      }
+      showSelectedDest(selectedDest);
+      startLiveUpdate();
+    }
+
+    try {
+      await hydrateStateFromServer();
+    } catch (error) {
+      toast(`State yuklenemedi: ${error.message}`);
+    }
+
+    await loadLiveEventHistory();
+    await refreshKickLiveStatus();
+    connectKickEvents();
+  };
+
+  window.addEventListener('beforeunload', () => {
+    if (kickEventSource) {
+      kickEventSource.close();
+      kickEventSource = null;
+    }
+  });
+
+  async function setOverlayVisibility(kind, visible, buttonEl = null) {
+    if (overlayRequestPending) {
+      toast('Overlay islemi devam ediyor');
+      return;
+    }
+    const previous = { ...overlayVisibility };
+    const payload = {};
+    let successMessage = '';
+    let stateMessage = '';
+    if (kind === 'road') {
+      overlayVisibility.road = Boolean(visible);
+      payload.show_road_hud_overlay = overlayVisibility.road;
+      successMessage = overlayVisibility.road ? 'Yol overlay gosteriliyor' : 'Yol overlay gizlendi';
+      stateMessage = overlayVisibility.road ? 'Yol overlay acik.' : 'Yol overlay kapali.';
+    } else if (kind === 'location') {
+      overlayVisibility.location = Boolean(visible);
+      payload.show_location_time_overlay = overlayVisibility.location;
+      successMessage = overlayVisibility.location ? 'Lokasyon overlay gosteriliyor' : 'Lokasyon overlay gizlendi';
+      stateMessage = overlayVisibility.location ? 'Lokasyon overlay acik.' : 'Lokasyon overlay kapali.';
+    } else {
+      overlayVisibility.map = Boolean(visible);
+      payload.show_map_overlay = overlayVisibility.map;
+      successMessage = overlayVisibility.map ? 'Harita overlay gosteriliyor' : 'Harita overlay gizlendi';
+      stateMessage = overlayVisibility.map ? 'Harita overlay acik.' : 'Harita overlay kapali.';
+    }
+    syncOverlayVisibilityUI();
+    setInlineStatus('overlay', 'Overlay ayari kaydediliyor...', '');
+    setOverlayControlsPending(true, buttonEl && buttonEl.id ? buttonEl.id : '');
+    try {
+      await postState(payload);
+      setInlineStatus('overlay', stateMessage, 'ok');
+      toast(successMessage);
+    } catch (error) {
+      overlayVisibility.road = previous.road;
+      overlayVisibility.location = previous.location;
+      overlayVisibility.map = previous.map;
+      syncOverlayVisibilityUI();
+      setInlineStatus('overlay', `Overlay ayari kaydedilemedi: ${error.message}`, 'err');
+      toast(`Overlay ayari kaydedilemedi: ${error.message}`);
+    } finally {
+      setOverlayControlsPending(false);
+    }
+  }
+
+  async function setOverlayMode(mode, buttonEl = null) {
+    if (overlayRequestPending) {
+      toast('Overlay islemi devam ediyor');
+      return;
+    }
+    const previousMode = overlayMode;
+    overlayMode = normalizeOverlayMode(mode);
+    syncOverlayModeUI();
+    setInlineStatus('overlay', 'Overlay modu kaydediliyor...', '');
+    setOverlayControlsPending(true, buttonEl && buttonEl.id ? buttonEl.id : '');
+    try {
+      const payload = { overlay_mode: overlayMode };
+      if (overlayMode === 'offer') {
+        payload.offer_custom_text = '';
+      }
+      await postState(payload);
+      setInlineStatus('overlay', `Overlay modu: ${overlayModeLabel(overlayMode)}.`, 'ok');
+      if (overlayMode === 'offer') {
+        toast('Overlay modu: bekleme');
+        return;
+      }
+      if (overlayMode === 'pickup') {
+        toast('Overlay modu: yuke gidiyor');
+        return;
+      }
+      toast('Overlay modu: normal');
+    } catch (error) {
+      overlayMode = previousMode;
+      syncOverlayModeUI();
+      setInlineStatus('overlay', `Overlay modu kaydedilemedi: ${error.message}`, 'err');
+      toast(`Overlay modu kaydedilemedi: ${error.message}`);
+    } finally {
+      setOverlayControlsPending(false);
+    }
+  }
+
+  async function saveFareAmount() {
+    setButtonLoading('fare-save-btn', true, 'KAYDEDILIYOR');
+    const input = document.getElementById('fare-input');
+    try {
+      fareAmount = input.value.trim();
+      await postState({ fare_amount: fareAmount });
+      syncFareUI();
+      setInlineStatus('fare', fareAmount ? 'Ucret metni kaydedildi.' : 'Ucret metni temizlendi.', 'ok');
+      toast(fareAmount ? 'Ucret kaydedildi' : 'Ucret temizlendi');
+    } finally {
+      setButtonLoading('fare-save-btn', false);
+    }
+  }
+
+  async function clearFareAmount() {
+    fareAmount = '';
+    document.getElementById('fare-input').value = '';
+    await postState({ fare_amount: '' });
+    syncFareUI();
+    setInlineStatus('fare', 'Ucret metni temizlendi.', 'ok');
+    toast('Ucret temizlendi');
+  }
+
+  async function showFareOnOverlay() {
+    showFare = true;
+    syncFareUI();
+    await postState({ show_fare: true, fare_amount: fareAmount });
+    setInlineStatus('fare', 'Ucret overlayde gosteriliyor.', 'ok');
+    toast('Ucret overlayde gosteriliyor');
+  }
+
+  async function hideFareOnOverlay() {
+    showFare = false;
+    syncFareUI();
+    await postState({ show_fare: false });
+    setInlineStatus('fare', 'Ucret overlayde gizlendi.', '');
+    toast('Ucret overlayde gizlendi');
+  }
+
+  async function saveCargoText() {
+    setButtonLoading('cargo-save-btn', true, 'KAYDEDILIYOR');
+    const input = document.getElementById('cargo-input');
+    try {
+      cargoText = input.value.trim();
+      await postState({ cargo_text: cargoText });
+      syncCargoUI();
+      setInlineStatus('cargo', cargoText ? 'Yuk metni kaydedildi.' : 'Yuk metni temizlendi.', 'ok');
+      toast(cargoText ? 'Yuk metni kaydedildi' : 'Yuk metni temizlendi');
+    } finally {
+      setButtonLoading('cargo-save-btn', false);
+    }
+  }
+
+  async function clearCargoText() {
+    cargoText = '';
+    document.getElementById('cargo-input').value = '';
+    await postState({ cargo_text: '' });
+    syncCargoUI();
+    setInlineStatus('cargo', 'Yuk metni temizlendi.', 'ok');
+    toast('Yuk metni temizlendi');
+  }
+
+  async function showCargoOnOverlay() {
+    showCargo = true;
+    syncCargoUI();
+    await postState({ show_cargo: true, cargo_text: cargoText });
+    setInlineStatus('cargo', 'Yuk overlayde gosteriliyor.', 'ok');
+    toast('Yuk overlayde gosteriliyor');
+  }
+
+  async function hideCargoOnOverlay() {
+    showCargo = false;
+    syncCargoUI();
+    await postState({ show_cargo: false });
+    setInlineStatus('cargo', 'Yuk overlayde gizlendi.', '');
+    toast('Yuk overlayde gizlendi');
+  }
+
+  async function saveKey() {
+    const key = getCurrentApiKeyInput();
+    setApiButtonsBusy(true, 'key-save-btn', 'KAYDEDILIYOR');
+    try {
+      await postState({ rtirl_key: key });
+      if (key) {
+        localStorage.setItem('rtirl_key', key);
+      } else {
+        localStorage.removeItem('rtirl_key');
+      }
+      if (!key) {
+        updateGpsUi('idle', 'GPS durumu bilinmiyor', '');
+        setInlineStatus('api', 'API key temizlendi.', 'ok');
+        toast('Anahtar temizlendi');
+        return;
+      }
+      markApiKeyNeedsRetest('API key kaydedildi. Test etmeniz onerilir.');
+      setInlineStatus('api', 'API key kaydedildi.', 'ok');
+      toast('Anahtar kaydedildi');
+    } catch (error) {
+      const message = extractErrorMessage(error, 'Kaydetme basarisiz');
+      setInlineStatus('api', `API key kaydedilemedi: ${message}`, 'err');
+      toast(`Kaydetme hatasi: ${message}`);
+    } finally {
+      setApiButtonsBusy(false);
+    }
+  }
+
+  async function testKey() {
+    const key = getCurrentApiKeyInput();
+    if (!key) {
+      setInlineStatus('api', 'Test icin once API key girin.', 'err');
+      toast('Once key girin');
+      return;
+    }
+
+    setApiButtonsBusy(true, 'key-test-btn', 'TEST EDILIYOR');
+    updateGpsUi('idle', 'Test ediliyor...', '');
+    setInlineStatus('api', 'API key test ediliyor...', '');
+
+    try {
+      const data = await fetchLocationWithKey(key);
+      const coords = toFiniteLocation(data);
+      if (!coords) {
+        throw new Error('Konum verisi yok');
+      }
+
+      updateGpsUi('ok', 'GPS aktif', `Lat: ${coords.lat.toFixed(6)} | Lon: ${coords.lon.toFixed(6)}`);
+
+      try {
+        await postState({ rtirl_key: key });
+        localStorage.setItem('rtirl_key', key);
+        setInlineStatus('api', 'API key test edildi ve kaydedildi.', 'ok');
+        toast('GPS baglantisi basarili');
+      } catch (saveError) {
+        const saveMessage = extractErrorMessage(saveError, 'Sunucuya kaydetme basarisiz');
+        setInlineStatus('api', `Test basarili ama key kaydedilemedi: ${saveMessage}`, 'err');
+        toast(`Test basarili, kayit hatasi: ${saveMessage}`);
+      }
+    } catch (error) {
+      const message = extractErrorMessage(error, 'Baglanti hatasi');
+      updateGpsUi('err', `Hata: ${message}`, '');
+      setInlineStatus('api', `Test basarisiz: ${message}`, 'err');
+      toast(`Baglanti hatasi: ${message}`);
+    } finally {
+      setApiButtonsBusy(false);
+    }
+  }
+
+  function onAddrInput() {
+    clearTimeout(geocodeTimer);
+    const q = document.getElementById('addr-input').value.trim();
+    if (q.length < 3) { hideResults('results-list'); return; }
+    geocodeTimer = setTimeout(() => geocode(q, 'results-list', selectResult), 450);
+  }
+
+  function onPickupInput() {
+    clearTimeout(pickupGeocodeTimer);
+    const q = document.getElementById('pickup-input').value.trim();
+    if (q.length < 3) { hideResults('pickup-results-list'); return; }
+    pickupGeocodeTimer = setTimeout(() => geocode(q, 'pickup-results-list', selectPickupResult), 450);
+  }
+
+  function showResultsLoading(listId) {
+    const state = geocodeState[listId];
+    const list = document.getElementById(listId);
+    const input = document.getElementById(state && state.inputId ? state.inputId : '');
+    if (!list) return;
+    list.innerHTML = '<li class="result-item"><strong>Araniyor...</strong><span class="sub">Sonuclar getiriliyor</span></li>';
+    list.classList.add('visible');
+    if (input) {
+      input.setAttribute('aria-expanded', 'true');
+      input.setAttribute('aria-activedescendant', '');
+    }
+  }
+
+  async function geocode(query, listId, onSelect) {
+    const state = geocodeState[listId];
+    if (!state) return;
+    state.requestId += 1;
+    const requestId = state.requestId;
+    showResultsLoading(listId);
+    try {
+      const response = await fetch(`${API}/geocode?q=${encodeURIComponent(query)}`);
+      const items = await response.json();
+      if (requestId !== state.requestId) return;
+      showResults(items, listId, onSelect);
+    } catch {
+      if (requestId !== state.requestId) return;
+      hideResults(listId);
+    }
+  }
+
+  function showResults(items, listId, onSelect) {
+    const state = geocodeState[listId];
+    const list = document.getElementById(listId);
+    const input = document.getElementById(state && state.inputId ? state.inputId : '');
+    if (!state || !list) return;
+
+    state.items = Array.isArray(items) ? items : [];
+    state.activeIndex = -1;
+    state.onSelect = onSelect;
+
+    list.innerHTML = '';
+    if (!state.items.length) {
+      hideResults(listId);
+      return;
+    }
+
+    state.items.forEach((item, index) => {
+      const li = document.createElement('li');
+      li.className = 'result-item';
+      li.setAttribute('role', 'option');
+      li.id = `${listId}-option-${index}`;
+      li.setAttribute('aria-selected', 'false');
+      li.tabIndex = -1;
+      const title = document.createElement('strong');
+      title.textContent = item.display_name;
+      li.appendChild(title);
+      const sub = document.createElement('span');
+      sub.className = 'sub';
+      sub.textContent = 'Secmek icin Enter';
+      li.appendChild(sub);
+      li.onclick = () => onSelect(item);
+      li.addEventListener('mouseenter', () => {
+        state.activeIndex = index;
+        syncResultActiveState(listId);
+      });
+      list.appendChild(li);
+    });
+
+    list.classList.add('visible');
+    if (input) {
+      input.setAttribute('aria-expanded', 'true');
+      input.setAttribute('aria-activedescendant', '');
+    }
+    syncResultActiveState(listId);
+  }
+
+  function syncResultActiveState(listId) {
+    const state = geocodeState[listId];
+    const list = document.getElementById(listId);
+    const input = document.getElementById(state && state.inputId ? state.inputId : '');
+    if (!state || !list) return;
+    const rows = Array.from(list.querySelectorAll('.result-item'));
+    rows.forEach((row, idx) => {
+      const active = idx === state.activeIndex;
+      row.classList.toggle('active', active);
+      row.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+    if (input) {
+      if (state.activeIndex >= 0 && rows[state.activeIndex]) {
+        input.setAttribute('aria-activedescendant', rows[state.activeIndex].id || '');
+      } else {
+        input.setAttribute('aria-activedescendant', '');
+      }
+    }
+  }
+
+  function moveResultActive(listId, delta) {
+    const state = geocodeState[listId];
+    const list = document.getElementById(listId);
+    if (!state || !list || !list.classList.contains('visible') || !state.items.length) return;
+
+    const nextIndex = state.activeIndex < 0
+      ? (delta > 0 ? 0 : state.items.length - 1)
+      : (state.activeIndex + delta + state.items.length) % state.items.length;
+    state.activeIndex = nextIndex;
+    syncResultActiveState(listId);
+  }
+
+  function selectActiveResult(listId) {
+    const state = geocodeState[listId];
+    if (!state || state.activeIndex < 0 || state.activeIndex >= state.items.length) return false;
+    const item = state.items[state.activeIndex];
+    if (!item || typeof state.onSelect !== 'function') return false;
+    state.onSelect(item);
+    return true;
+  }
+
+  function handleResultListKeydown(event, listId) {
+    const state = geocodeState[listId];
+    const list = document.getElementById(listId);
+    if (!state || !list) return;
+
+    if (!list.classList.contains('visible')) {
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter') {
+        const input = document.getElementById(state.inputId);
+        const query = input ? input.value.trim() : '';
+        if (query.length >= 3) {
+          event.preventDefault();
+          reopenResultsIfPossible(listId);
+        }
+      }
+      return;
+    }
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      moveResultActive(listId, 1);
+      return;
+    }
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      moveResultActive(listId, -1);
+      return;
+    }
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      if (state.activeIndex < 0 && state.items.length > 0) {
+        state.activeIndex = 0;
+      }
+      selectActiveResult(listId);
+      return;
+    }
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      collapseResults(listId);
+    }
+  }
+
+  function collapseResults(listId) {
+    const state = geocodeState[listId];
+    const list = document.getElementById(listId);
+    const input = document.getElementById(state && state.inputId ? state.inputId : '');
+    if (!list) return;
+    if (state) {
+      state.activeIndex = -1;
+    }
+    list.classList.remove('visible');
+    list.innerHTML = '';
+    if (input) {
+      input.setAttribute('aria-expanded', 'false');
+      input.setAttribute('aria-activedescendant', '');
+    }
+  }
+
+  function reopenResultsIfPossible(listId) {
+    const state = geocodeState[listId];
+    const input = document.getElementById(state && state.inputId ? state.inputId : '');
+    if (!state || !input) return;
+    const query = input.value.trim();
+    if (query.length < 3) return;
+
+    if (Array.isArray(state.items) && state.items.length > 0 && typeof state.onSelect === 'function') {
+      showResults(state.items, listId, state.onSelect);
+      return;
+    }
+
+    const onSelect = listId === 'results-list' ? selectResult : selectPickupResult;
+    geocode(query, listId, onSelect);
+  }
+
+  function hideResults(listId) {
+    const state = geocodeState[listId];
+    const list = document.getElementById(listId);
+    const input = document.getElementById(state && state.inputId ? state.inputId : '');
+    if (!list) return;
+    if (state) {
+      state.activeIndex = -1;
+      state.items = [];
+    }
+    list.classList.remove('visible');
+    list.innerHTML = '';
+    if (input) {
+      input.setAttribute('aria-expanded', 'false');
+      input.setAttribute('aria-activedescendant', '');
+    }
+  }
+
+  function selectResult(item) {
+    selectedDest = buildLocationPayload(item);
+    document.getElementById('addr-input').value = item.display_name;
+    hideResults('results-list');
+    showSelectedDest(selectedDest);
+  }
+
+  function selectPickupResult(item) {
+    selectedPickup = buildLocationPayload(item);
+    document.getElementById('pickup-input').value = item.display_name;
+    hideResults('pickup-results-list');
+    showSelectedPickup(selectedPickup);
+  }
+
+  function syncDataActionHints() {
+    const destBtn = document.getElementById('set-dest-btn');
+    const pickupBtn = document.getElementById('set-pickup-btn');
+    const destNote = document.getElementById('dest-btn-note');
+    const pickupNote = document.getElementById('pickup-btn-note');
+    if (destBtn && destNote) {
+      destNote.textContent = destBtn.disabled
+        ? 'Hedef secilmeden bu islem acilmaz.'
+        : 'Hedef hazir. Kaydetmek icin tikla.';
+    }
+    if (pickupBtn && pickupNote) {
+      pickupNote.textContent = pickupBtn.disabled
+        ? 'Manuel secim yapmadan uygulama pasif.'
+        : 'Manuel secim hazir. Uygulamak icin tikla.';
+    }
+  }
+
+  function showSelectedDest(dest) {
+    document.getElementById('selected-dest').style.display = 'block';
+    document.getElementById('sel-addr').textContent = dest.full_label || dest.medium_label || dest.label || '-';
+    document.getElementById('set-dest-btn').disabled = false;
+    setInlineStatus('dest', 'Hedef secildi. Ayarlamak icin butona tiklayin.', '');
+    syncDataActionHints();
+  }
+
+  function hideSelectedDestUI() {
+    document.getElementById('selected-dest').style.display = 'none';
+    document.getElementById('set-dest-btn').disabled = true;
+    syncDataActionHints();
+  }
+
+  function showSelectedPickup(pickup) {
+    document.getElementById('selected-pickup').style.display = 'block';
+    document.getElementById('sel-pickup-addr').textContent = pickup.full_label || pickup.medium_label || pickup.label || '-';
+    document.getElementById('sel-pickup-overlay').textContent = pickup.short_label || pickup.label;
+    document.getElementById('set-pickup-btn').disabled = false;
+    setInlineStatus('pickup', 'Manuel pickup secildi. Uygulamak icin butona tiklayin.', '');
+    syncDataActionHints();
+  }
+
+  function hideSelectedPickupUI() {
+    document.getElementById('selected-pickup').style.display = 'none';
+    document.getElementById('set-pickup-btn').disabled = true;
+    setInlineStatus('pickup', 'Pickup secili degil.', '');
+    syncDataActionHints();
+  }
+
+  async function setDestination() {
+    if (!selectedDest) return;
+    setButtonLoading('set-dest-btn', true, 'AYARLANIYOR');
+    try {
+      localStorage.setItem('ft_destination', JSON.stringify(selectedDest));
+      bc.postMessage({ type: 'destination', payload: selectedDest });
+      await postState({ destination: selectedDest });
+      setInlineStatus('dest', 'Hedef ayarlandi.', 'ok');
+      toast('Hedef ayarlandi');
+      startLiveUpdate();
+    } finally {
+      setButtonLoading('set-dest-btn', false);
+    }
+  }
+
+  async function clearDestination() {
+    selectedDest = null;
+    localStorage.removeItem('ft_destination');
+    bc.postMessage({ type: 'destination', payload: null });
+    await postState({ destination: null });
+
+    document.getElementById('addr-input').value = '';
+    hideSelectedDestUI();
+    document.getElementById('route-card').style.display = 'none';
+    stopLiveUpdate();
+    setInlineStatus('dest', 'Hedef temizlendi.', 'ok');
+    syncDataActionHints();
+    toast('Hedef temizlendi');
+  }
+
+  async function applyPickup() {
+    if (!selectedPickup) return;
+    setButtonLoading('set-pickup-btn', true, 'UYGULANIYOR');
+    try {
+      await postState({ pickup: selectedPickup, show_pickup: true });
+      setInlineStatus('pickup', 'Pickup overlaye uygulandi.', 'ok');
+      toast('Pickup uygulandi');
+    } finally {
+      setButtonLoading('set-pickup-btn', false);
+    }
+  }
+
+  async function hidePickupOnOverlay() {
+    if (!selectedPickup) {
+      setInlineStatus('pickup', 'Once pickup secmelisiniz.', 'err');
+      toast('Once pickup secin');
+      return;
+    }
+    await postState({ pickup: selectedPickup, show_pickup: false });
+    setInlineStatus('pickup', 'Pickup overlayde gizlendi.', '');
+    toast('Pickup overlayde gizlendi');
+  }
+
+  async function clearPickup() {
+    selectedPickup = null;
+    document.getElementById('pickup-input').value = '';
+    hideResults('pickup-results-list');
+    hideSelectedPickupUI();
+    await postState({ pickup: null, show_pickup: false });
+    setInlineStatus('pickup', 'Pickup temizlendi.', 'ok');
+    toast('Pickup temizlendi');
+  }
+
+  async function useCurrentLocationAsPickup() {
+    const key = getCurrentApiKeyInput() || getStoredApiKey();
+    if (!key) {
+      setInlineStatus('pickup', 'Anlik konum icin once API key kaydedin.', 'err');
+      toast('Once key kaydedin');
+      return;
+    }
+
+    setButtonLoading('pickup-current-btn', true, 'ALINIYOR');
+    try {
+      const location = await fetchLocationWithKey(key);
+      const coords = toFiniteLocation(location);
+      if (!coords) throw new Error('Konum verisi yok');
+
+      const reverseResponse = await fetch(`${API}/reverse-geocode?lat=${encodeURIComponent(coords.lat)}&lon=${encodeURIComponent(coords.lon)}`);
+      if (!reverseResponse.ok) throw new Error('Adres cozumlenemedi');
+      const reverse = await reverseResponse.json();
+
+      selectedPickup = buildLocationPayload(reverse);
+      showSelectedPickup(selectedPickup);
+      await postState({ pickup: selectedPickup, show_pickup: true });
+      setInlineStatus('pickup', 'Anlik konum pickup olarak alindi.', 'ok');
+      toast('Anlik konum pickup olarak uygulandi');
+    } catch {
+      setInlineStatus('pickup', 'Anlik konum alinirken hata olustu.', 'err');
+      toast('Pickup uygulanamadi');
+    } finally {
+      setButtonLoading('pickup-current-btn', false);
+    }
+  }
+
+  function startLiveUpdate() {
+    document.getElementById('route-card').style.display = 'block';
+    updateLive();
+    if (liveInterval) clearInterval(liveInterval);
+    liveInterval = setInterval(updateLive, 8000);
+  }
+
+  function stopLiveUpdate() {
+    if (liveInterval) clearInterval(liveInterval);
+  }
+
+  async function updateLive() {
+    const key = getCurrentApiKeyInput() || getStoredApiKey();
+    if (!selectedDest) return;
+    if (!key) return;
+
+    try {
+      const location = await fetchLocationWithKey(key);
+      const coords = toFiniteLocation(location);
+      if (!coords) return;
+
+      const routeResponse = await fetch(`${API}/route?fromLat=${coords.lat}&fromLon=${coords.lon}&toLat=${selectedDest.lat}&toLon=${selectedDest.lon}`);
+      const route = await routeResponse.json();
+      if (route.code === 'Ok' && route.routes.length) {
+        const km = route.routes[0].distance / 1000;
+        const min = route.routes[0].duration / 60;
+        document.getElementById('live-dist').textContent = km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`;
+        document.getElementById('live-dur').textContent = min < 60 ? `${Math.round(min)} dk` : `${Math.floor(min / 60)}s ${Math.round(min % 60)}dk`;
+      }
+    } catch {
+      // Ignore periodic update errors.
+    }
+  }
+
+  function toast(message) {
+    const el = document.getElementById('toast');
+    el.textContent = message;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 2200);
+  }
+</script>
+</body>
+</html>
