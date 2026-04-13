@@ -70,12 +70,12 @@
     }
 
     .top {
-      min-height: 46px;
+      min-height: 70px;
       border-radius: 12px;
       display: flex;
       align-items: center;
       gap: 7px;
-      padding: 7px 10px;
+      padding: 8px 10px;
       background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01)), var(--panel);
       border: 1px solid rgba(245, 197, 24, 0.32);
       box-shadow:
@@ -83,6 +83,15 @@
         0 0 12px rgba(245, 197, 24, 0.1);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
+    }
+
+    .top .frame-wrap {
+      height: 52px;
+      align-items: flex-start;
+    }
+
+    #frame-location-top {
+      height: 68px;
     }
 
     .bottom {
@@ -447,10 +456,11 @@
     }
 
     function buildSources(key) {
-      const neighborhoodLong = "${data.neighborhood ? data.neighborhood.text + ', ' : ''}${data.place ? data.place.text : ''}";
+      const neighborhoodLong = "${data.address ? data.address.text + ', ' : ''}${data.neighborhood ? data.neighborhood.text + ', ' : ''}${data.locality ? data.locality.text + ', ' : ''}${data.region ? data.region.text : ''}";
+
 
       return {
-        locationTop: buildOverlayUrl('neighborhood.html', key, { lang: 'en', format: neighborhoodLong }, { size: 22, weight: 700 }),
+        locationTop: buildOverlayUrl('neighborhood.html', key, { lang: 'en', format: neighborhoodLong }, { size: 20, weight: 700 }),
         timeBottom: buildOverlayUrl('datetime/luxon.html', key, { lang: 'tr', format: 'T' }, { size: 22, weight: 700 })
       };
     }
@@ -466,7 +476,7 @@
       const timeFrame = document.getElementById('frame-time-bottom');
       const src = buildSources(key);
 
-      if (locationFrame && (force || isBlankSrc(locationFrame.getAttribute('src')))) {
+      if (locationFrame && (force || locationFrame.getAttribute('src') !== src.locationTop)) {
         locationFrame.src = src.locationTop;
       }
       if (timeFrame && (force || isBlankSrc(timeFrame.getAttribute('src')))) {
