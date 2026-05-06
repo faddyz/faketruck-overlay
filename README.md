@@ -20,16 +20,6 @@
   <img alt="OpenStreetMap" src="https://img.shields.io/badge/🗺️%20Nominatim-Geocoding-7EBC6F?style=flat-square&logo=openstreetmap&logoColor=white">
 </p>
 
-## 🎬 Önizleme
-
-<p align="center">
-  <video src="assets/faketruck-preview.mp4" controls muted playsinline width="100%"></video>
-</p>
-
-<p align="center">
-  GitHub video oynatıcıyı göstermiyorsa: <a href="assets/faketruck-preview.mp4">önizleme videosunu aç</a>
-</p>
-
 ## ✨ Proje Özeti
 
 FakeTruck Overlay, IRL / trucking-style yayınlarda canlı rota hissi veren, OBS içine browser source olarak eklenebilen bir yayın overlay projesidir.
@@ -39,6 +29,12 @@ Bu proje, Kick yayıncısı [kick.com/GokhanOner](https://kick.com/GokhanOner) i
 Yayıncı; canlı konumu, varış noktasını, pickup noktasını, rota mesafesini, tahmini süreyi, yük bilgisini ve yayın modunu dinamik şekilde ekranda gösterebilir. Sistem Kick chat komutlarıyla da kontrol edilebildiği için moderatörler veya yetkili kullanıcılar yayın sırasında rotayı, görünümü ve overlay durumunu hızlıca güncelleyebilir.
 
 Amaç, klasik harita panelinden daha stream-friendly bir deneyim üretmek: okunaklı, hareketli, kompakt ve yayın üstünde doğal duran bir trucking HUD.
+
+## 🎬 Önizleme
+
+<p align="center">
+  <img src="assets/faketruck-preview.gif" alt="FakeTruck Overlay önizleme" width="100%">
+</p>
 
 ## 🧩 Öne Çıkanlar
 
@@ -93,7 +89,7 @@ kick-utils.js            # Kick yetkilendirme, koordinat parse ve chat yardımc�
 docker-compose.yml       # App + Caddy production kompozisyonu
 Dockerfile               # Node 20 production imajı
 assets/
-  faketruck-preview.mp4  # README önizleme videosu
+  faketruck-preview.gif  # README önizleme GIF'i
 ```
 
 ## ⚠️ Disclaimer
